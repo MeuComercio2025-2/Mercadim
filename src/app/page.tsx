@@ -8,7 +8,7 @@ export default function Home() {
   const [message, setMessage] = useState<string>("Carregando...");
 
   useEffect(() => {
-    axios.get("/api/clientes")
+    axios.get("/api/teste")
       .then(res => {
         setMessage(res.data.message ?? JSON.stringify(res.data));
       })
@@ -18,7 +18,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div className=" text-black w-full h-full flex flex-col gap-6 items-center justify-center p-5">
+    <div className="bg-cyan-800 text-black w-full h-full flex flex-col gap-6 items-center justify-center p-5">
       <div className="text-center text-white">
         <h1>Mensagem do Backend logo abaixo</h1>
         <p>{message}</p>
