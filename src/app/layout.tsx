@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
-
 // @ts-ignore
 import "./globals.css";
+import { AuthProvider } from "@/contexts/AuthContext";
+import { PrivateRoute } from "@/components/PrivateRoute";
 
 export const metadata: Metadata = {
   title: "Meu Comercio",
@@ -15,11 +16,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        suppressHydrationWarning
-        className={`antialiased`}
-      >
-        {children}
+      <body suppressHydrationWarning className={`antialiased`}>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );
