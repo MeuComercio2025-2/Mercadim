@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+
+// @ts-ignore
 import "./globals.css";
 
 
@@ -16,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
+        suppressHydrationWarning
         className={`antialiased`}
       >
         {children}
