@@ -1,19 +1,22 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const { login } = useAuth();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
 
   const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault()
-    alert(`Login com: ${email}`)
-  }
+    e.preventDefault();
+    login(email, password);
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-gray-100">
@@ -22,7 +25,9 @@ export default function LoginPage() {
           <div className="flex flex-col items-center gap-2">
             <div className="text-4xl">🛒</div>
             <CardTitle className="text-center">Meu Mercado</CardTitle>
-            <p className="text-gray-500 text-sm">Entre para acessar o sistema</p>
+            <p className="text-gray-500 text-sm">
+              Entre para acessar o sistema
+            </p>
           </div>
         </CardHeader>
 
@@ -54,15 +59,8 @@ export default function LoginPage() {
               Entrar
             </Button>
           </form>
-
-          <p className="text-sm text-gray-600 mt-4 text-center">
-            Não tem conta?{" "}
-            <a href="/register" className="text-green-600 font-semibold hover:underline">
-              Cadastre-se
-            </a>
-          </p>
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

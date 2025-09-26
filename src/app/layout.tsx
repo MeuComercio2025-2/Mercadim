@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
+
 // @ts-ignore
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
-import { PrivateRoute } from "@/components/PrivateRoute";
+import { ToastContainer } from "react-toastify"
 
 export const metadata: Metadata = {
   title: "Meu Comercio",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body suppressHydrationWarning className={`antialiased`}>
         <AuthProvider>{children}</AuthProvider>
+        <ToastContainer />
       </body>
     </html>
   );
