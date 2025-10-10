@@ -6,6 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import Link from "next/link";
+import { ShoppingCart } from "lucide-react";
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -23,7 +25,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md p-6 shadow-lg">
         <CardHeader>
           <div className="flex flex-col items-center gap-2">
-            <div className="text-4xl">🛒</div>
+            <div className="text-4xl"><ShoppingCart /></div>
             <CardTitle className="text-center">Meu Mercado</CardTitle>
             <p className="text-gray-500 text-sm">
               Entre para acessar o sistema
@@ -59,6 +61,12 @@ export default function LoginPage() {
               Entrar
             </Button>
           </form>
+          <p className="mt-4 text-center text-sm text-gray-500">
+            Primeiro Acesso?{" "}
+            <Link href="/register" className="text-blue-500 hover:underline">
+              Cadastre-se
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>
