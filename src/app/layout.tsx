@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+// @ts-ignore
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastContainer } from "react-toastify";
