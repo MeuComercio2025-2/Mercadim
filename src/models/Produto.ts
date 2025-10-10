@@ -15,7 +15,7 @@ export class Produto {
   estoque!: number;
 
   @IsString() // referência a Categoria
-  categoriaId!: string;
+  categoriaId?: string;
 
   @IsDate()
   criadoEm!: Date;
