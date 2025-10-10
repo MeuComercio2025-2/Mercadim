@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Button } from "@/components/ui/button";
 
 export default function ConfigPage() {
+  // Feito por Pedrooaj
   return (
     <div className="min-h-screen bg-background p-6 md:p-12">
       {/* Cabeçalho */}
