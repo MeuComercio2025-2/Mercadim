@@ -10,7 +10,10 @@ if(!admin.apps.length){
 }
 
 
+
 const firestoreAdmin = admin.firestore();
 initialize(firestoreAdmin,{
     validateModels: true
 });
+
+export default admin;

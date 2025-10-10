@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
-
+import { AuthProvider } from "@/contexts/AuthContext";
+import { ToastContainer } from "react-toastify";
 
 
 export const metadata: Metadata = {
@@ -15,10 +16,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`antialiased`}
-      >
-        {children}
+      <body suppressHydrationWarning className={`antialiased`}>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+        <ToastContainer />
       </body>
     </html>
   );
