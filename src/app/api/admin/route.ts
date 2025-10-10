@@ -5,7 +5,7 @@ export async function GET() {
   // Verifica se já existe algum usuário com role 'admin'
   try {
     const list = await admin.auth().listUsers();
-    const hasAdmin = list.users.some(user => user.customClaims?.role === "admin");
+    const hasAdmin = list.users.some(user => user.customClaims?.role === "Administrador");
     
     return new Response(
       JSON.stringify({ hasAdmin }),
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
 
     // Lista todos os usuários e verifica se já existe admin
     const list = await admin.auth().listUsers();
-    const hasAdmin = list.users.some(user => user.customClaims?.role === "admin");
+    const hasAdmin = list.users.some(user => user.customClaims?.role === "Administrador");
 
     if (hasAdmin) {
       return new Response(
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     });
 
     // Define a role admin via custom claims
-    await admin.auth().setCustomUserClaims(user.uid, { role: "admin" });
+    await admin.auth().setCustomUserClaims(user.uid, { role: "Administrador" });
 
     return new Response(
       JSON.stringify({ uid: user.uid, email: user.email, message: "Administrador criado com sucesso!" }),

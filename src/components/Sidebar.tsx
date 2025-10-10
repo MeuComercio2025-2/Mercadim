@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
@@ -8,34 +8,38 @@ import {
   BookOpen,
   LogOut,
   Search,
+  Box,
+  CircleDollarSign,
+  Headset,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePathname, useRouter } from "next/navigation";
 
 export type NavItem = {
   id: string;
   label: string;
   icon: React.ReactNode;
-  href?: string;
   badge?: string | number;
 };
 
 const navItems: NavItem[] = [
-  { id: "home", label: "Home", icon: <Home size={18} /> },
-  { id: "projects", label: "Projects", icon: <BookOpen size={18} />, badge: 4 },
-  { id: "team", label: "Team", icon: <Users size={18} /> },
-  { id: "settings", label: "Settings", icon: <Settings size={18} /> },
+  { id: "/", label: "Home", icon: <Home size={18} /> },
+  { id: "/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: 4 },
+  { id: "/estoque", label: "Estoque", icon: <Box size={18} /> },
+  { id: "/suporte", label: "Suporte", icon: <Headset size={18} /> },
+  { id: "/config", label: "Configurações", icon: <Settings size={18} /> },
 ];
 
 export default function Sidebar() {
-  const [active, setActive] = useState("home");
+  const { user, role, logout } = useAuth();
+  const pathname = usePathname(); // pega a rota atual
+  const router = useRouter();
   const [query, setQuery] = useState("");
-  const { user, logout } = useAuth();
 
   const filtered = navItems.filter((n) =>
     n.label.toLowerCase().includes(query.toLowerCase())
@@ -55,14 +59,14 @@ export default function Sidebar() {
           <Avatar>
             <AvatarImage src={user?.photoURL || ""} />
             <AvatarFallback>
-              {user?.displayName?.[0]?.toUpperCase() || "P"}
+              {user?.displayName?.[0]?.toUpperCase()}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="font-semibold text-sm">
               Olá, {user?.displayName?.split(" ")[0] || "Usuário"}
             </div>
-            <div className="text-xs text-muted-foreground">Administrador</div>
+            <div className="text-xs text-muted-foreground">{role}</div>
           </div>
         </div>
 
@@ -88,11 +92,11 @@ export default function Sidebar() {
         <ScrollArea className="flex-1 p-4">
           <nav className="space-y-1">
             {filtered.map((item) => {
-              const isActive = item.id === active;
+              const isActive = item.id === pathname;
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActive(item.id)}
+                  onClick={() => item.id && router.push(item.id)}
                   className={`w-full flex items-center justify-between gap-3 p-2 rounded-lg text-sm font-medium transition-colors
                     ${isActive ? "bg-primary/10 text-primary" : "hover:bg-muted/60"}
                   `}
@@ -110,8 +114,6 @@ export default function Sidebar() {
               );
             })}
           </nav>
-
-          
         </ScrollArea>
 
         {/* Rodapé */}
@@ -141,7 +143,7 @@ export default function Sidebar() {
               aria-label="Logout"
               className="text-muted-foreground hover:text-destructive flex-shrink-0"
             >
-              <LogOut  size={18} />
+              <LogOut size={18} />
             </Button>
           </div>
         </div>
