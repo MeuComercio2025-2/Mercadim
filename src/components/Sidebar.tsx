@@ -1,16 +1,15 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
   Settings,
-  Users,
-  BookOpen,
-  LogOut,
-  Search,
-  Box,
   CircleDollarSign,
   Headset,
+  Box,
+  LogOut,
+  Search,
+  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -27,17 +26,19 @@ export type NavItem = {
   badge?: string | number;
 };
 
+// Rotas de navegação principal
 const navItems: NavItem[] = [
   { id: "/", label: "Home", icon: <Home size={18} /> },
   { id: "/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: 4 },
   { id: "/estoque", label: "Estoque", icon: <Box size={18} /> },
   { id: "/suporte", label: "Suporte", icon: <Headset size={18} /> },
   { id: "/config", label: "Configurações", icon: <Settings size={18} /> },
+  { id: "/perfil", label: "Perfil", icon: <User size={18} /> }, // 🔹 nova rota adicionada
 ];
 
 export default function Sidebar() {
   const { user, role, logout } = useAuth();
-  const pathname = usePathname(); // pega a rota atual
+  const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
 
@@ -54,23 +55,28 @@ export default function Sidebar() {
         transition={{ duration: 0.18 }}
         className="z-40 flex flex-col w-64 lg:w-72 h-screen border-r bg-background"
       >
-        {/* Header */}
-        <div className="p-5 flex items-center gap-3">
+        {/* Header - Avatar/Nome (clique abre perfil) */}
+        <div
+          className="p-5 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
+          onClick={() => router.push("/perfil")}
+        >
           <Avatar>
             <AvatarImage src={user?.photoURL || ""} />
             <AvatarFallback>
-              {user?.displayName?.[0]?.toUpperCase()}
+              {user?.displayName?.[0]?.toUpperCase() || "U"}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="font-semibold text-sm">
               Olá, {user?.displayName?.split(" ")[0] || "Usuário"}
             </div>
-            <div className="text-xs text-muted-foreground">{role}</div>
+            <div className="text-xs text-muted-foreground">
+              {role || "Administrador"}
+            </div>
           </div>
         </div>
 
-        {/* Busca */}
+        {/* Campo de busca */}
         <div className="px-5">
           <div className="relative mb-3">
             <Search
@@ -96,9 +102,13 @@ export default function Sidebar() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => item.id && router.push(item.id)}
+                  onClick={() => router.push(item.id)}
                   className={`w-full flex items-center justify-between gap-3 p-2 rounded-lg text-sm font-medium transition-colors
-                    ${isActive ? "bg-primary/10 text-primary" : "hover:bg-muted/60"}
+                    ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "hover:bg-muted/60"
+                    }
                   `}
                 >
                   <div className="flex items-center gap-3">
@@ -116,10 +126,13 @@ export default function Sidebar() {
           </nav>
         </ScrollArea>
 
-        {/* Rodapé */}
+        {/* Rodapé - info do usuário e logout */}
         <div className="p-4 border-t">
           <div className="flex items-center justify-between gap-3 min-w-0 overflow-hidden">
-            <div className="flex items-center gap-3 min-w-0 flex-1">
+            <div
+              className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer hover:bg-muted/50 rounded-lg p-1 transition-colors"
+              onClick={() => router.push("/perfil")} // 🔹 clique no rodapé também abre o perfil
+            >
               <Avatar>
                 <AvatarImage src={user?.photoURL || ""} />
                 <AvatarFallback>
@@ -133,7 +146,9 @@ export default function Sidebar() {
                 >
                   {user?.email || "email@exemplo.com"}
                 </div>
-                <div className="text-xs text-muted-foreground">Conta padrão</div>
+                <div className="text-xs text-muted-foreground">
+                  Conta padrão
+                </div>
               </div>
             </div>
             <Button
