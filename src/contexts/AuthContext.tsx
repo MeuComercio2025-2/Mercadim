@@ -8,7 +8,6 @@ import { useRouter } from "next/navigation";
 
 interface AuthContextType {
   user: User | null;
-  role: string | null;
   loading: boolean;
   signUp: (
     email: string,
@@ -23,24 +22,12 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
-    const unsubscribe = listenAuth(async (user) => {
+    const unsubscribe = listenAuth((user) => {
       setUser(user);
-      if(user){
-        try {
-          const tokenResult = await user.getIdTokenResult(true);
-          const userRole = tokenResult.claims.role as string || null;
-          setRole(userRole)
-
-        } catch (error) {
-          console.log("Erro ao obter o token do usuário:", error);
-          setRole(null);
-        }
-      }
       setLoading(false);
     });
     return () => unsubscribe();
@@ -138,7 +125,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   return (
     <AuthContext.Provider
       value={{
-        role,
         user,
         loading,
         signUp: handleSignUp,
