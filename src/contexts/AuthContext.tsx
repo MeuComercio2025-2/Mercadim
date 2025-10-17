@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 import { createContext, useContext, useState, useEffect } from "react";
-import { listenAuth, login, logout, signUp } from "@/lib/auth";
+import { listenAuth, login, logout, updateUser, UserData } from "@/lib/auth";
 import { User } from "@firebase/auth";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -16,6 +16,7 @@ interface AuthContextType {
     displayName: string
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
+  updateUser: (data: UserData) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -30,12 +31,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     const unsubscribe = listenAuth(async (user) => {
       setUser(user);
-      if(user){
+      if (user) {
         try {
           const tokenResult = await user.getIdTokenResult(true);
-          const userRole = tokenResult.claims.role as string || null;
-          setRole(userRole)
-
+          const userRole = (tokenResult.claims.role as string) || null;
+          setRole(userRole);
         } catch (error) {
           console.log("Erro ao obter o token do usuário:", error);
           setRole(null);
@@ -46,66 +46,60 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return () => unsubscribe();
   }, []);
 
- const handleSignUp = async (
-  email: string,
-  password: string,
-  displayName: string
-) => {
-  try {
-    await toast.promise(
-      axios.post("/api/admin", { displayName, email, password }),
-      {
-        pending: "Criando conta de administrador...",
-        success: "Conta criada! Realize o login para continuar.",
-        error: {
-          render({ data }) {
-            // 'data' é o erro do Axios
-            if (axios.isAxiosError(data) && data.response) {
-              return data.response.data.error || "Erro ao criar conta de administrador.";
-            }
-            return "Erro ao criar conta de administrador.";
-          },
-        },
-      },
-      {
-        position: "bottom-left",
-        autoClose: 5000,
-      }
-    );
-
-  } catch (err) {
-    console.log("Erro ao criar conta de administrador:", err);
-    
-  } finally{
-    router.push("/login");
-  }
-};
-
-
-  const handleLogin = async (email: string, password: string) => {
+  const handleSignUp = async (
+    email: string,
+    password: string,
+    displayName: string
+  ) => {
     try {
-      const loginPromise = login(email, password);
-
       await toast.promise(
-        loginPromise,
+        axios.post("/api/admin", { displayName, email, password }),
         {
-          pending: "Validando suas credenciais...",
-          success: "Login realizado com sucesso!",
-
+          pending: "Criando conta de administrador...",
+          success: "Conta criada! Realize o login para continuar.",
           error: {
-            render({ data }: any) {
-              if (data?.code === "auth/too-many-requests") {
-                return "Muitas tentativas de login. Aguarde alguns minutos.";
+            render({ data }) {
+              // 'data' é o erro do Axios
+              if (axios.isAxiosError(data) && data.response) {
+                return (
+                  data.response.data.error ||
+                  "Erro ao criar conta de administrador."
+                );
               }
-              if (data?.code === "auth/invalid-credential") {
-                return "Credenciais inválidas. Verifique e tente novamente.";
-              }
-              return "Erro ao fazer login.";
+              return "Erro ao criar conta de administrador.";
             },
           },
         },
-        { position: "bottom-left" }
+        {
+          position: "bottom-left",
+          autoClose: 5000,
+        }
       );
+    } catch (err) {
+      console.log("Erro ao criar conta de administrador:", err);
+    } finally {
+      router.push("/login");
+    }
+  };
+
+  const handleUpdateUser = async (data: UserData) => {
+      try {
+        await updateUser({
+          displayName: data.displayName,
+          email: data.email,
+          photoURL: data.photoURL,
+          password: data.password,
+        })
+
+        
+      } catch (error) {
+        console.log("Erro ao atualizar perfil:", error);
+      }
+  }
+
+  const handleLogin = async (email: string, password: string) => {
+    try {
+      await login(email, password);
 
       // só redireciona se o login realmente foi bem-sucedido
       router.push("/");
@@ -114,25 +108,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("Erro de login:", error);
     }
   };
+  
 
   // Logout
   const handleLogout = async () => {
-    return toast
-      .promise(
-        logout(),
-        {
-          pending: "Finalizando sessão...",
-          success: "Logout realizado com sucesso!",
-          error: "Erro ao fazer logout.",
-        },
-        {
-          position: "bottom-left",
-          autoClose: 5000,
-        }
-      )
-      .then(() => {
-        router.push("/login");
-      });
+    try {
+      await logout();
+      router.push("/login");
+    } catch (error) {
+      console.log("Erro de logout:", error);
+    }
   };
 
   return (
@@ -144,6 +129,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
+        updateUser: handleUpdateUser
       }}
     >
       {children}
