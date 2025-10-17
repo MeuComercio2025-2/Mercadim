@@ -18,9 +18,7 @@ import { toast } from "react-toastify";
 
 export interface UserData{
     displayName?: string;
-    email?: string;
     photoURL?: string;
-    password?: string;
 }
 
 // Criar Conta
@@ -65,22 +63,39 @@ export const updateUser = async (userData: UserData) => {
         await updateProfile(auth.currentUser, {
             displayName: userData.displayName || auth.currentUser.displayName || undefined,
             photoURL: userData.photoURL || auth.currentUser.photoURL || undefined,
-        }).then(() => {
-           updateEmail(auth.currentUser!, userData.email || auth.currentUser!.email || "")
         }).catch((error) => {
             toast.error("Erro ao atualizar perfil: " + error.message);
             throw error;
         });
-
-        if(userData.password && userData.password.length >= 0){
-            await updatePassword(auth.currentUser, userData.password).catch((error) => {
-                toast.error("Erro ao atualizar senha: " + error.message, { position: "bottom-right" });
-                throw error;
-            });
-        }
         toast.success("Perfil atualizado com sucesso!", { position: "bottom-right" });
         
 
+    }else{
+        toast.error("Nenhum usuário autenticado.");
+    }
+}
+
+export const updateUserEmail = async (newEmail: string) => {
+    if(auth.currentUser){
+        await updateEmail(auth.currentUser, newEmail).then(() => {
+            toast.success("E-mail atualizado com sucesso!", { position: "bottom-right" });
+        }).catch((error) => {
+            toast.error("Erro ao atualizar e-mail: " + error.message, { position: "bottom-right" });
+            throw error;
+        });
+    }else{
+        toast.error("Nenhum usuário autenticado.");
+    }
+}
+
+export const updateUserPassword = async (newPassword: string) => {
+    if(auth.currentUser){
+        await updatePassword(auth.currentUser, newPassword).then(() => {
+            toast.success("Senha atualizada com sucesso!", { position: "bottom-right" });
+        }).catch((error) => {
+            toast.error("Erro ao atualizar senha: " + error.message, { position: "bottom-right" });
+            throw error;
+        });
     }else{
         toast.error("Nenhum usuário autenticado.");
     }

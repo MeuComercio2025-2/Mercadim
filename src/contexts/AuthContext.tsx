@@ -1,7 +1,7 @@
 "use client";
 import axios from "axios";
 import { createContext, useContext, useState, useEffect } from "react";
-import { listenAuth, login, logout, updateUser, UserData } from "@/lib/auth";
+import { listenAuth, login, logout, updateUser, updateUserEmail, UserData } from "@/lib/auth";
 import { User } from "@firebase/auth";
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
@@ -17,6 +17,7 @@ interface AuthContextType {
   ) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   updateUser: (data: UserData) => Promise<void>;
+  updateUserEmail: (currentPassword: string, newEmail: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -82,16 +83,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+
+  const handleUpdateEmail = async (currentPassword: string, newEmail: string) => {
+    try{
+      await updateUserEmail(newEmail);
+    }catch(error){
+      console.log("Erro ao atualizar e-mail:", error);
+    }
+  }
+
   const handleUpdateUser = async (data: UserData) => {
       try {
         await updateUser({
           displayName: data.displayName,
-          email: data.email,
           photoURL: data.photoURL,
-          password: data.password,
-        })
-
-        
+        })        
       } catch (error) {
         console.log("Erro ao atualizar perfil:", error);
       }
@@ -129,7 +135,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         signUp: handleSignUp,
         login: handleLogin,
         logout: handleLogout,
-        updateUser: handleUpdateUser
+        updateUser: handleUpdateUser,
+        updateUserEmail: handleUpdateEmail,
       }}
     >
       {children}

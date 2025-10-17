@@ -1,16 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "react-toastify";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@/components/ui/card";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/AuthContext";
+import { Mail, Key } from "lucide-react";
 
-// ✅ Schema corrigido para não obrigar senha
+// ✅ Schema principal do perfil
 const profileSchema = z
   .object({
     displayName: z.string().optional(),
@@ -26,7 +41,6 @@ const profileSchema = z
   })
   .refine(
     (data) => {
-      // só valida confirmação se o campo de senha estiver preenchido
       if (data.password) {
         return data.password === data.confirmPassword;
       }
@@ -41,7 +55,7 @@ const profileSchema = z
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function PerfilPage() {
-  const { user, updateUser } = useAuth();
+  const { user, updateUserEmail } = useAuth();
 
   const {
     register,
@@ -60,9 +74,21 @@ export default function PerfilPage() {
     },
   });
 
+  // Estados dos modais
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
+  const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+
+  // Inputs do modal de troca de e-mail
+  const [emailCurrentPassword, setEmailCurrentPassword] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+
+  // Inputs do modal de troca de senha
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmNewPassword, setConfirmNewPassword] = useState("");
+
   const photoWatch = watch("photoURL");
 
-  // ✅ Preenche o form com os dados atuais do usuário
+  // Preenche dados do usuário atual
   useEffect(() => {
     if (!user) return;
     if (user.displayName) setValue("displayName", user.displayName);
@@ -71,7 +97,8 @@ export default function PerfilPage() {
   }, [user, setValue]);
 
   const onSubmit = (data: ProfileFormData) => {
-    updateUser(data);
+    console.log("Form principal:", data);
+        
   };
 
   const onError = () => {
@@ -88,7 +115,7 @@ export default function PerfilPage() {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-5">
-            {/* Foto de perfil */}
+            {/* Foto */}
             <div className="flex flex-col items-center space-y-3">
               <div className="w-24 h-24 rounded-full overflow-hidden border">
                 <img
@@ -109,35 +136,119 @@ export default function PerfilPage() {
             </div>
 
             {/* E-mail */}
-            <div>
-              <label className="text-sm text-gray-600">E-mail</label>
-              <Input
-                placeholder="Seu e-mail"
-                type="email"
-                {...register("email")}
-              />
+            <div className="flex flex-col gap-2">
+              <div>
+                <label className="text-sm text-gray-600">E-mail</label>
+                <Input
+                  placeholder="Seu e-mail"
+                  type="email"
+                  {...register("email")}
+                />
+              </div>
+
+              {/* Modal de troca de e-mail */}
+              <Dialog open={isEmailModalOpen} onOpenChange={setIsEmailModalOpen}>
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full flex items-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" /> Trocar e-mail
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Trocar e-mail</DialogTitle>
+                    <DialogDescription>
+                      Confirme sua senha atual e informe o novo e-mail.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-3 py-3">
+                    <Input
+                      placeholder="Senha atual"
+                      type="password"
+                      value={emailCurrentPassword}
+                      onChange={(e) => setEmailCurrentPassword(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Novo e-mail"
+                      type="email"
+                      value={newEmail}
+                      onChange={(e) => setNewEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEmailModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button onClick={() => updateUserEmail(emailCurrentPassword, newEmail)}>Confirmar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
-            {/* Nova senha */}
-            <div>
-              <label className="text-sm text-gray-600">Nova senha</label>
-              <Input
-                placeholder="Digite a nova senha (opcional)"
-                type="password"
-                {...register("password")}
-              />
+            {/* Trocar senha */}
+            <div className="flex flex-col gap-2">
+              {/* Modal de troca de senha */}
+              <Dialog
+                open={isPasswordModalOpen}
+                onOpenChange={setIsPasswordModalOpen}
+              >
+                <DialogTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full flex items-center gap-2"
+                  >
+                    <Key className="w-4 h-4" /> Trocar senha
+                  </Button>
+                </DialogTrigger>
+
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Trocar senha</DialogTitle>
+                    <DialogDescription>
+                      Informe sua senha atual e defina uma nova senha.
+                    </DialogDescription>
+                  </DialogHeader>
+
+                  <div className="space-y-3 py-3">
+    
+                    <Input
+                      placeholder="Nova senha"
+                      type="password"
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Confirmar nova senha"
+                      type="password"
+                      value={confirmNewPassword}
+                      onChange={(e) => setConfirmNewPassword(e.target.value)}
+                    />
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsPasswordModalOpen(false)}
+                    >
+                      Cancelar
+                    </Button>
+                    <Button>Confirmar</Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
 
-            {/* Confirmar senha */}
-            <div>
-              <label className="text-sm text-gray-600">Confirme a senha</label>
-              <Input
-                placeholder="Confirme a nova senha"
-                type="password"
-                {...register("confirmPassword")}
-              />
-            </div>
-
+            {/* Salvar */}
             <Button type="submit" className="w-full">
               Salvar alterações
             </Button>
