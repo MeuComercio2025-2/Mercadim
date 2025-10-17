@@ -10,7 +10,6 @@
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
     "@radix-ui/react-avatar": "^1.1.10",
-    "@radix-ui/react-dropdown-menu": "^2.1.16",
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-progress": "^1.1.7",
     "@radix-ui/react-scroll-area": "^1.2.10",
@@ -26,7 +25,6 @@
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.544.0",
     "next": "15.5.2",
-    "next-themes": "^0.4.6",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.63.0",

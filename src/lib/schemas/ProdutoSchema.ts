@@ -6,7 +6,7 @@ export const produtoSchema = z.object({
   nome: z.string(),
   preco: z.number(),
   estoque: z.number(),
-  categoriaId: z.string().optional(), 
+  categoriaId: z.string(), 
   criadoEm: z.date().optional(), // será gerado automaticamente se não enviado
   atualizadoEm: z.date().optional(),
 });
