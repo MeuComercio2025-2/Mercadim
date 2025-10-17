@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
@@ -423,3 +424,9 @@ export default function EstoquePage() {
     </div>
   );
 }
+=======
+
+export default function EstoquePage() {
+  return <div>Página de Estoque</div>;
+}
+>>>>>>> dev

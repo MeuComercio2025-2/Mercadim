@@ -1,4 +1,7 @@
+<<<<<<< HEAD
 import "reflect-metadata";
+=======
+>>>>>>> dev
 import * as admin from "firebase-admin";
 import { initialize } from "fireorm"
 import serviceAccount from "../../firebase.json"
