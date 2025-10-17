@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { produtoRepository } from "@/repository/ProdutoRepository";
 import { produtoSchema } from "@/lib/schemas/ProdutoSchema";
 import { estoqueRepository } from "@/repository/EstoqueRepository";
+<<<<<<< HEAD
+import admin from "@/config/firebase-admin";
+=======
+>>>>>>> dev
 
 interface Params {
   params: { id: string };
@@ -70,7 +74,22 @@ export async function PUT(req: Request, { params }: Params) {
   return NextResponse.json(produtoAtualizado);
 }
 
+<<<<<<< HEAD
+export async function DELETE(req: Request, { params }: { params: { id: string }}) {
+  const { id } = params;
+  try {
+    
+    await admin.firestore().collection("produtos").doc(id).delete();
+
+
+    return NextResponse.json({ message: "Produto deletado com sucesso" });
+  } catch (e) {
+    console.error("DELETE /api/produtos/[id] error:", e);
+    return NextResponse.json({ error: "Erro ao deletar produto" }, { status: 500 });
+  }
+=======
 export async function DELETE(req: Request, { params }: Params) {
   const { id } = params;
   return NextResponse.json({ message: "Produto deletado com sucesso" });
+>>>>>>> dev
 }
