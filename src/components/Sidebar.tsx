@@ -4,43 +4,38 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
   Settings,
-  CircleDollarSign,
-  Headset,
-  Box,
+  Users,
+  BookOpen,
   LogOut,
   Search,
-  User,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
-import { usePathname, useRouter } from "next/navigation";
 
 export type NavItem = {
   id: string;
   label: string;
   icon: React.ReactNode;
+  href?: string;
   badge?: string | number;
 };
 
-// Rotas de navegação principal
 const navItems: NavItem[] = [
-  { id: "/", label: "Home", icon: <Home size={18} /> },
-  { id: "/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: 4 },
-  { id: "/estoque", label: "Estoque", icon: <Box size={18} /> },
-  { id: "/suporte", label: "Suporte", icon: <Headset size={18} /> },
-  { id: "/config", label: "Configurações", icon: <Settings size={18} /> },
-  { id: "/perfil", label: "Perfil", icon: <User size={18} /> }, // 🔹 nova rota adicionada
+  { id: "home", label: "Home", icon: <Home size={18} /> },
+  { id: "projects", label: "Projects", icon: <BookOpen size={18} />, badge: 4 },
+  { id: "team", label: "Team", icon: <Users size={18} /> },
+  { id: "settings", label: "Settings", icon: <Settings size={18} /> },
 ];
 
 export default function Sidebar() {
-  const { user, role, logout } = useAuth();
-  const pathname = usePathname();
-  const router = useRouter();
+  const [active, setActive] = useState("home");
   const [query, setQuery] = useState("");
+  const { user, logout } = useAuth();
 
   const filtered = navItems.filter((n) =>
     n.label.toLowerCase().includes(query.toLowerCase())
@@ -55,28 +50,23 @@ export default function Sidebar() {
         transition={{ duration: 0.18 }}
         className="z-40 flex flex-col w-64 lg:w-72 h-screen border-r bg-background"
       >
-        {/* Header - Avatar/Nome (clique abre perfil) */}
-        <div
-          className="p-5 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={() => router.push("/perfil")}
-        >
+        {/* Header */}
+        <div className="p-5 flex items-center gap-3">
           <Avatar>
             <AvatarImage src={user?.photoURL || ""} />
             <AvatarFallback>
-              {user?.displayName?.[0]?.toUpperCase() || "U"}
+              {user?.displayName?.[0]?.toUpperCase() || "P"}
             </AvatarFallback>
           </Avatar>
           <div>
             <div className="font-semibold text-sm">
               Olá, {user?.displayName?.split(" ")[0] || "Usuário"}
             </div>
-            <div className="text-xs text-muted-foreground">
-              {role || "Administrador"}
-            </div>
+            <div className="text-xs text-muted-foreground">Administrador</div>
           </div>
         </div>
 
-        {/* Campo de busca */}
+        {/* Busca */}
         <div className="px-5">
           <div className="relative mb-3">
             <Search
@@ -98,17 +88,13 @@ export default function Sidebar() {
         <ScrollArea className="flex-1 p-4">
           <nav className="space-y-1">
             {filtered.map((item) => {
-              const isActive = item.id === pathname;
+              const isActive = item.id === active;
               return (
                 <button
                   key={item.id}
-                  onClick={() => router.push(item.id)}
+                  onClick={() => setActive(item.id)}
                   className={`w-full flex items-center justify-between gap-3 p-2 rounded-lg text-sm font-medium transition-colors
-                    ${
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "hover:bg-muted/60"
-                    }
+                    ${isActive ? "bg-primary/10 text-primary" : "hover:bg-muted/60"}
                   `}
                 >
                   <div className="flex items-center gap-3">
@@ -124,15 +110,14 @@ export default function Sidebar() {
               );
             })}
           </nav>
+
+          
         </ScrollArea>
 
-        {/* Rodapé - info do usuário e logout */}
+        {/* Rodapé */}
         <div className="p-4 border-t">
           <div className="flex items-center justify-between gap-3 min-w-0 overflow-hidden">
-            <div
-              className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer hover:bg-muted/50 rounded-lg p-1 transition-colors"
-              onClick={() => router.push("/perfil")} // 🔹 clique no rodapé também abre o perfil
-            >
+            <div className="flex items-center gap-3 min-w-0 flex-1">
               <Avatar>
                 <AvatarImage src={user?.photoURL || ""} />
                 <AvatarFallback>
@@ -146,9 +131,7 @@ export default function Sidebar() {
                 >
                   {user?.email || "email@exemplo.com"}
                 </div>
-                <div className="text-xs text-muted-foreground">
-                  Conta padrão
-                </div>
+                <div className="text-xs text-muted-foreground">Conta padrão</div>
               </div>
             </div>
             <Button
@@ -158,7 +141,7 @@ export default function Sidebar() {
               aria-label="Logout"
               className="text-muted-foreground hover:text-destructive flex-shrink-0"
             >
-              <LogOut size={18} />
+              <LogOut  size={18} />
             </Button>
           </div>
         </div>

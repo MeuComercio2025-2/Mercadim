@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastContainer } from "react-toastify";
-import { ThemeProvider } from "@/components/theme-provider";
+
 
 export const metadata: Metadata = {
   title: "Meu Comercio",
@@ -16,17 +16,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en">
       <body suppressHydrationWarning className={`antialiased`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <AuthProvider>{children}</AuthProvider>
-          <ToastContainer />
-        </ThemeProvider>
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+        <ToastContainer />
       </body>
     </html>
   );
