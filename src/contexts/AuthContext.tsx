@@ -76,11 +76,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           autoClose: 5000,
         }
       );
+      router.push("/login");
     } catch (err) {
       console.log("Erro ao criar conta de administrador:", err);
-    } finally {
-      router.push("/login");
-    }
+    } 
   };
 
 

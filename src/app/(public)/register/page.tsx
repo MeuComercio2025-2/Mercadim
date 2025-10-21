@@ -10,6 +10,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/AuthContext";
+import { ShieldUser } from "lucide-react";
+import { useRouter } from "next/navigation";
+
 
 // Esquema de validação
 const schema = z
@@ -27,6 +30,7 @@ const schema = z
 type FormData = z.infer<typeof schema>;
 
 export default function Register() {
+  const router = useRouter();
   const [step, setStep] = useState(1);
   const { signUp } = useAuth();
   const {
@@ -44,8 +48,9 @@ export default function Register() {
   const nextStep = () => setStep((prev) => prev + 1);
   const prevStep = () => setStep((prev) => prev - 1);
 
-  const onSubmit: SubmitHandler<FormData> = (data) => {
-    signUp(data.email, data.password, data.name);
+  const onSubmit: SubmitHandler<FormData> = async (data) => {
+    await signUp(data.email, data.password, data.name);
+    router.push("/login")
   };
 
   const watchedData = watch(); // Para mostrar na etapa de revisão
@@ -55,7 +60,7 @@ export default function Register() {
       <Card className="w-full max-w-md p-6 shadow-lg">
         <CardHeader>
           <div className="flex flex-col items-center gap-2">
-            <div className="text-4xl">🛒</div>
+            <div className="text-4xl"><ShieldUser /></div>
             <CardTitle className="text-center">Primeiro Acesso</CardTitle>
             <p className="text-gray-500 text-sm text-center">
               É necessário criar a conta de administrador, pois este é o
