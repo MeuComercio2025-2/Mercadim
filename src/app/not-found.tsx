@@ -1,10 +1,12 @@
 "use client";
 
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { useRouter } from "next/navigation";
+
 
 export default function NotFound() {
+  const router = useRouter();
   return (
     <div className="h-screen flex items-center justify-center bg-muted px-4">
       <Card className="w-full max-w-md shadow-lg rounded-2xl">
@@ -17,8 +19,8 @@ export default function NotFound() {
           <p className="text-lg text-muted-foreground">
             Oops! Página não encontrada.
           </p>
-          <Button asChild>
-            <Link href="/">Voltar para a Home</Link>
+          <Button className="cursor-pointer" onClick={() => router.back()}>
+            <p>Voltar para a Home</p>
           </Button>
         </CardContent>
       </Card>

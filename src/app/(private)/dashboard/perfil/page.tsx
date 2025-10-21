@@ -55,7 +55,7 @@ const profileSchema = z
 type ProfileFormData = z.infer<typeof profileSchema>;
 
 export default function PerfilPage() {
-  const { user, updateUserEmail } = useAuth();
+  const { user, updateUserEmail, updateUserPassword, updateUser } = useAuth();
 
   const {
     register,
@@ -83,6 +83,7 @@ export default function PerfilPage() {
   const [newEmail, setNewEmail] = useState("");
 
   // Inputs do modal de troca de senha
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
@@ -97,8 +98,7 @@ export default function PerfilPage() {
   }, [user, setValue]);
 
   const onSubmit = (data: ProfileFormData) => {
-    console.log("Form principal:", data);
-        
+    updateUser(data)
   };
 
   const onError = () => {
@@ -140,6 +140,7 @@ export default function PerfilPage() {
               <div>
                 <label className="text-sm text-gray-600">E-mail</label>
                 <Input
+                  disabled
                   placeholder="Seu e-mail"
                   type="email"
                   {...register("email")}
@@ -220,6 +221,12 @@ export default function PerfilPage() {
                   </DialogHeader>
 
                   <div className="space-y-3 py-3">
+                    <Input
+                      placeholder="Senha atual"
+                      type="password"
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                    />
     
                     <Input
                       placeholder="Nova senha"
@@ -242,7 +249,7 @@ export default function PerfilPage() {
                     >
                       Cancelar
                     </Button>
-                    <Button>Confirmar</Button>
+                    <Button onClick={() => updateUserPassword(currentPassword,newPassword)}>Confirmar</Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>

@@ -1,102 +1,122 @@
-import { auth } from "@/config/firebase"
-import { 
-    createUserWithEmailAndPassword,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged,
-    User,
-    UserCredential,
-    Unsubscribe,
-    updateProfile,
-    updateEmail,
-    updatePassword,
-    
+import { auth } from "@/config/firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  User,
+  UserCredential,
+  Unsubscribe,
+  updateProfile,
+  updatePassword,
+  verifyBeforeUpdateEmail,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+} from "@firebase/auth";
+// 🚀 Remova o import do 'toast'. Ele agora vive apenas no AuthContext.
 
-  } from "@firebase/auth"
-import { toast } from "react-toastify";
-
-
-export interface UserData{
-    displayName?: string;
-    photoURL?: string;
+export interface UserData {
+  displayName?: string;
+  photoURL?: string;
 }
 
 // Criar Conta
-export const signUp = async (email: string, password: string): Promise<UserCredential> => {
-    return createUserWithEmailAndPassword(auth, email, password).then((userCredential) => {
-        toast.success("Conta criada com sucesso!", { position: "bottom-right" });
-        return userCredential;
-    }).catch((error) => {
-        toast.error("Erro ao criar conta: " + error.message, { position: "bottom-right" });
-        throw error;
-    });
-}
+// (Obs: Seu AuthContext usa /api/admin para isso, então esta função
+// pode não estar sendo usada por ele, mas a deixamos limpa de qualquer forma)
+export const signUp = async (
+  email: string,
+  password: string
+): Promise<UserCredential> => {
+  return createUserWithEmailAndPassword(auth, email, password);
+};
 
 // Fazer Login
-export const login = async (email: string, password: string): Promise<UserCredential> => {
-    return signInWithEmailAndPassword(auth, email, password).then((userCredential) => {
-        toast.success("Login realizado com sucesso!", { position: "bottom-right" });
-        return userCredential;
-    }).catch((error) => {
-        toast.error("Erro ao fazer login: " + error.message, { position: "bottom-right" });
-        throw error;
-    });
-}
+export const login = async (
+  email: string,
+  password: string
+): Promise<UserCredential> => {
+  // Apenas retorne a promessa. O AuthContext vai cuidar do toast.
+  return signInWithEmailAndPassword(auth, email, password);
+};
 
 // Fazer Logout
 export const logout = async (): Promise<void> => {
-    return signOut(auth).then(() => {
-        toast.success("Logout realizado com sucesso!", { position: "bottom-right" });
-    }).catch((error) => {
-        toast.error("Erro ao fazer logout: " + error.message,  { position: "bottom-right" });
-    });
-}
+  // Apenas retorne a promessa. O AuthContext vai cuidar do toast se precisar.
+  return signOut(auth);
+};
 
 // Estado do Usuário em login
-export const listenAuth = (callback: (user: User | null) => void): Unsubscribe => {
-    return onAuthStateChanged(auth, callback);
-}
+export const listenAuth = (
+  callback: (user: User | null) => void
+): Unsubscribe => {
+  return onAuthStateChanged(auth, callback);
+};
 
-
+// Atualizar Perfil (Nome/Foto)
 export const updateUser = async (userData: UserData) => {
-    if(auth.currentUser){
-        await updateProfile(auth.currentUser, {
-            displayName: userData.displayName || auth.currentUser.displayName || undefined,
-            photoURL: userData.photoURL || auth.currentUser.photoURL || undefined,
-        }).catch((error) => {
-            toast.error("Erro ao atualizar perfil: " + error.message);
-            throw error;
-        });
-        toast.success("Perfil atualizado com sucesso!", { position: "bottom-right" });
-        
+  const user = auth.currentUser;
+  if (!user) {
+    // Lance um erro que o toast.promise no AuthContext vai pegar
+    throw new Error("Nenhum usuário autenticado.");
+  }
 
-    }else{
-        toast.error("Nenhum usuário autenticado.");
-    }
-}
+  // Lógica simplificada: Apenas passe os dados.
+  // Se 'displayName' for "" (vazio), ele salvará vazio.
+  // Se 'displayName' for 'undefined', ele não será alterado.
+  // Isso é exatamente o que queremos.
+  return updateProfile(user, {
+    displayName: userData.displayName,
+    photoURL: userData.photoURL,
+  });
+};
 
-export const updateUserEmail = async (newEmail: string) => {
-    if(auth.currentUser){
-        await updateEmail(auth.currentUser, newEmail).then(() => {
-            toast.success("E-mail atualizado com sucesso!", { position: "bottom-right" });
-        }).catch((error) => {
-            toast.error("Erro ao atualizar e-mail: " + error.message, { position: "bottom-right" });
-            throw error;
-        });
-    }else{
-        toast.error("Nenhum usuário autenticado.");
-    }
-}
+// Atualizar E-mail
+export const updateUserEmail = async (
+  currentPassword: string,
+  newEmail: string
+) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+  if (!user.email) {
+    throw new Error("Usuário não possui e-mail para reautenticar.");
+  }
 
-export const updateUserPassword = async (newPassword: string) => {
-    if(auth.currentUser){
-        await updatePassword(auth.currentUser, newPassword).then(() => {
-            toast.success("Senha atualizada com sucesso!", { position: "bottom-right" });
-        }).catch((error) => {
-            toast.error("Erro ao atualizar senha: " + error.message, { position: "bottom-right" });
-            throw error;
-        });
-    }else{
-        toast.error("Nenhum usuário autenticado.");
-    }
-}
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+
+  // 1. Reautentica
+  await reauthenticateWithCredential(user, credential);
+  
+  // 2. Envia verificação para o novo e-mail
+  // O 'await' garante que, se isso falhar, o catch do AuthContext pega.
+  await verifyBeforeUpdateEmail(user, newEmail);
+
+  // 3. 🚨 REMOVIDO: .finally(() => logout())
+  // O usuário não será mais deslogado!
+};
+
+// Atualizar Senha
+export const updateUserPassword = async (
+  currentPassword: string,
+  newPassword: string
+) => {
+  const user = auth.currentUser;
+  if (!user) {
+    throw new Error("Nenhum usuário autenticado.");
+  }
+  if (!user.email) {
+    throw new Error("Usuário não possui e-mail para reautenticar.");
+  }
+
+  const credential = EmailAuthProvider.credential(user.email, currentPassword);
+
+  // 1. Reautentica
+  await reauthenticateWithCredential(user, credential);
+
+  // 2. Atualiza a senha
+  // O 'await' garante que o erro seja pego pelo AuthContext
+  await updatePassword(user, newPassword);
+
+  // 3. 🚨 REMOVIDO: .finally(() => logout())
+};

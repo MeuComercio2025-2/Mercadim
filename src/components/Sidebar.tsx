@@ -28,12 +28,12 @@ export type NavItem = {
 
 // Rotas de navegação principal
 const navItems: NavItem[] = [
-  { id: "/", label: "Home", icon: <Home size={18} /> },
-  { id: "/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: 4 },
-  { id: "/estoque", label: "Estoque", icon: <Box size={18} /> },
-  { id: "/suporte", label: "Suporte", icon: <Headset size={18} /> },
-  { id: "/config", label: "Configurações", icon: <Settings size={18} /> },
-  { id: "/perfil", label: "Perfil", icon: <User size={18} /> }, // 🔹 nova rota adicionada
+  { id: "/dashboard", label: "Home", icon: <Home size={18} /> },
+  { id: "/dashboard/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: 4 },
+  { id: "/dashboard/estoque", label: "Estoque", icon: <Box size={18} /> },
+  { id: "/dashboard/suporte", label: "Suporte", icon: <Headset size={18} /> },
+  { id: "/dashboard/config", label: "Configurações", icon: <Settings size={18} /> },
+  { id: "/dashboard/perfil", label: "Perfil", icon: <User size={18} /> }, // 🔹 nova rota adicionada
 ];
 
 export default function Sidebar() {
