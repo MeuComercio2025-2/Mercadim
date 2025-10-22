@@ -1,5 +1,6 @@
 "use client";
 
+import Loading from "@/components/loading";
 import { useAuth } from "@/contexts/AuthContext";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -13,7 +14,7 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
   const router = useRouter();
 
   useEffect(() => {
-    if (loading) return;
+    if (loading) return ;
 
     if (!user) {
       router.replace("/login");
@@ -21,7 +22,7 @@ export function PrivateRoute({ children }: PrivateRouteProps) {
   }, [user, loading, router]);
 
   if (loading || !user) {
-    return null;
+    return <Loading />;
   }
 
   return <>{children}</>;

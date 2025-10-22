@@ -4,13 +4,14 @@ import axios from "axios";
 import { useEffect, useState } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import React from "react";
-import Loading from "@/app/loading";
+import Loading from "@/components/loading";
 
-interface PublicRouteProps {
+
+interface AdminGuardProps {
   children: React.ReactNode;
 }
 
-export function PublicRoute({ children }: PublicRouteProps) {
+export function AdminGuard({ children }: AdminGuardProps) {
   // null = carregando, true = existe, false = não existe
   const [adminExists, setAdminExists] = useState<boolean | null>(null);
   const router = useRouter();
@@ -76,7 +77,9 @@ export function PublicRoute({ children }: PublicRouteProps) {
     return <>{children}</>;
   }
 
+  
+
   // 4. Em todos os outros casos (ex: sendo redirecionado),
   //    não renderiza nada.
-  return <Loading />;
+  return;
 }
