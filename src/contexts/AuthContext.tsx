@@ -208,7 +208,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           },
         },
       }
-    ).finally(() => logout());
+    );
     // 'listenAuth' detectará a mudança e atualizará o 'user' globalmente.
   };
 

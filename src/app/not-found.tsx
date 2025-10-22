@@ -19,8 +19,8 @@ export default function NotFound() {
           <p className="text-lg text-muted-foreground">
             Oops! Página não encontrada.
           </p>
-          <Button className="cursor-pointer" onClick={() => router.back()}>
-            <p>Voltar para a Home</p>
+          <Button className="cursor-pointer" onClick={() => router.push("/login")}>
+            <p>Ir para Login</p>
           </Button>
         </CardContent>
       </Card>

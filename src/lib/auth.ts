@@ -89,11 +89,9 @@ export const updateUserEmail = async (
   await reauthenticateWithCredential(user, credential);
   
   // 2. Envia verificação para o novo e-mail
-  // O 'await' garante que, se isso falhar, o catch do AuthContext pega.
   await verifyBeforeUpdateEmail(user, newEmail);
 
-  // 3. 🚨 REMOVIDO: .finally(() => logout())
-  // O usuário não será mais deslogado!
+
 };
 
 // Atualizar Senha
@@ -117,6 +115,6 @@ export const updateUserPassword = async (
   // 2. Atualiza a senha
   // O 'await' garante que o erro seja pego pelo AuthContext
   await updatePassword(user, newPassword);
+  logout();
 
-  // 3. 🚨 REMOVIDO: .finally(() => logout())
 };
