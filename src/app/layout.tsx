@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 // @ts-ignore
 import "./globals.css";
+
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ToastContainer } from "react-toastify";
 import { ThemeProvider } from "@/components/theme-provider";
+
 
 export const metadata: Metadata = {
   title: "Meu Comercio",
