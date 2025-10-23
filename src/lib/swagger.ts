@@ -1,3 +1,5 @@
+import { writeFileSync } from 'fs';
+import yaml from "js-yaml"
 import { createSwaggerSpec } from 'next-swagger-doc';
 
 export const getApiDocs = async () => {
@@ -13,5 +15,10 @@ export const getApiDocs = async () => {
       security: [],
     },
   });
+  const yamlData = yaml.dump(spec);
+  writeFileSync('./swagger.yaml', yamlData, 'utf-8');
+  
+   console.log("✅ Arquivo swagger.yaml gerado com sucesso!");
+
   return spec;
 };
