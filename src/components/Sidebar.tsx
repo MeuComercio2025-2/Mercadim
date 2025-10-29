@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Home,
@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePathname, useRouter } from "next/navigation";
+import axios from "axios";
 
 export type NavItem = {
   id: string;
@@ -26,21 +27,49 @@ export type NavItem = {
   badge?: string | number;
 };
 
-// Rotas de navegação principal
-const navItems: NavItem[] = [
-  { id: "/dashboard", label: "Home", icon: <Home size={18} /> },
-  { id: "/dashboard/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: 4 },
-  { id: "/dashboard/estoque", label: "Estoque", icon: <Box size={18} /> },
-  { id: "/dashboard/suporte", label: "Suporte", icon: <Headset size={18} /> },
-  { id: "/dashboard/config", label: "Configurações", icon: <Settings size={18} /> },
-  { id: "/dashboard/perfil", label: "Perfil", icon: <User size={18} /> }, // 🔹 nova rota adicionada
-];
 
 export default function Sidebar() {
   const { user, role, logout } = useAuth();
+
   const pathname = usePathname();
   const router = useRouter();
   const [query, setQuery] = useState("");
+  const [numeroVendas, setNumeroVendas] = useState<number | null>();
+  useEffect(() => {
+    async function fetchVendasSemana() {
+    try {
+      const res = await axios.get("/api/vendas");
+      const vendas: { criadoEm: string }[] = res.data;
+
+      const now = new Date();
+      const firstDayWeek = new Date(now);
+      firstDayWeek.setDate(now.getDate() - now.getDay());
+
+      const vendasSemana = vendas.filter(v => {
+        const vendaData = new Date(v.criadoEm);
+        return vendaData >= firstDayWeek && vendaData <= now
+      })
+      setNumeroVendas(vendasSemana.length)
+    } catch (error) {
+      console.error("Erro ao buscar vendas:", error);
+      setNumeroVendas(null);
+    }
+  }
+  fetchVendasSemana()
+  }, [])
+
+  // Rotas de navegação principal
+  const navItems: NavItem[] = [
+    { id: "/dashboard", label: "Home", icon: <Home size={18} /> },
+    { id: "/dashboard/vendas", label: "Vendas", icon: <CircleDollarSign size={18} />, badge: numeroVendas as number},
+    { id: "/dashboard/estoque", label: "Estoque", icon: <Box size={18} /> },
+    { id: "/dashboard/suporte", label: "Suporte", icon: <Headset size={18} /> },
+    { id: "/dashboard/config", label: "Configurações", icon: <Settings size={18} /> },
+    { id: "/dashboard/perfil", label: "Perfil", icon: <User size={18} /> }, // 🔹 nova rota adicionada
+  ];
+
+
+
 
   const filtered = navItems.filter((n) =>
     n.label.toLowerCase().includes(query.toLowerCase())
@@ -53,12 +82,12 @@ export default function Sidebar() {
         animate={{ x: 0, opacity: 1 }}
         exit={{ x: -12, opacity: 0 }}
         transition={{ duration: 0.18 }}
-        className="z-40 flex flex-col w-64 lg:w-72 h-screen border-r bg-background"
+        className="z-40 flex flex-col w-72 h-screen border-r bg-background"
       >
         {/* Header - Avatar/Nome (clique abre perfil) */}
         <div
           className="p-5 flex items-center gap-3 cursor-pointer hover:bg-muted/50 transition-colors"
-          onClick={() => router.push("/perfil")}
+          onClick={() => router.push("/dashboard/perfil")}
         >
           <Avatar>
             <AvatarImage src={user?.photoURL || ""} />
@@ -104,10 +133,9 @@ export default function Sidebar() {
                   key={item.id}
                   onClick={() => router.push(item.id)}
                   className={`w-full flex items-center justify-between gap-3 p-2 rounded-lg text-sm font-medium transition-colors
-                    ${
-                      isActive
-                        ? "bg-primary/10 text-primary"
-                        : "hover:bg-muted/60"
+                    ${isActive
+                      ? "bg-primary/10 text-primary"
+                      : "hover:bg-muted/60"
                     }
                   `}
                 >
@@ -131,7 +159,7 @@ export default function Sidebar() {
           <div className="flex items-center justify-between gap-3 min-w-0 overflow-hidden">
             <div
               className="flex items-center gap-3 min-w-0 flex-1 cursor-pointer hover:bg-muted/50 rounded-lg p-1 transition-colors"
-              onClick={() => router.push("/perfil")} // 🔹 clique no rodapé também abre o perfil
+              onClick={() => router.push("/dasboard/perfil")} // 🔹 clique no rodapé também abre o perfil
             >
               <Avatar>
                 <AvatarImage src={user?.photoURL || ""} />

@@ -10,7 +10,7 @@ export const vendaSchema = z.object({
   usuarioId: z.string(),
   itens: z.array(itemVendaSchema).min(1),
   valorTotal: z.number().positive(),
-  criadoEm: z.date().default(() => new Date()),
+  criadoEm: z.date().default(() => new Date()).optional(),
 });
 
 export type VendaDTO = z.infer<typeof vendaSchema>;
