@@ -1,36 +1,52 @@
 import { NextResponse } from "next/server";
-import { produtoRepository } from "@/repository/ProdutoRepository";
+import admin from "@/config/firebase-admin";
 import { produtoSchema } from "@/lib/schemas/ProdutoSchema";
+
+const db = admin.firestore();
+const col = db.collection("produtos");
 
 export async function GET() {
   try {
-    const produtos = await produtoRepository.find();
-    return NextResponse.json(produtos);
-  } catch (error) {
-    console.error("Erro ao listar produtos:", error);
-    return NextResponse.json(
-      { error: "Erro ao listar produtos" },
-      { status: 500 }
-    );
+    const snap = await col.orderBy("nome", "asc").get();
+    const items = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    return NextResponse.json(items);
+  } catch (e) {
+    console.error("GET /api/produtos error:", e);
+    return NextResponse.json({ error: "Erro ao listar produtos" }, { status: 500 });
   }
 }
 
 export async function POST(req: Request) {
-  const body = await req.json();
-  const parsed = produtoSchema.safeParse(body);
+  try {
+    const body = await req.json();
+    // nome, preco, estoque, categoriaId (opcional)
+    const parsed = produtoSchema
+      .pick({ nome: true, preco: true, estoque: true })
+      .extend({ categoriaId: produtoSchema.shape.categoriaId })
+      .safeParse(body);
 
-  if (!parsed.success) {
-    return NextResponse.json(
-      { errors: parsed.error.format() },
-      { status: 400 }
-    );
+    if (!parsed.success) {
+      return NextResponse.json({ errors: parsed.error.format() }, { status: 400 });
+    }
+
+    const { nome, preco, estoque, categoriaId } = parsed.data;
+    const now = new Date();
+
+    const ref = await col.add({
+      nome,
+      preco,
+      estoque,
+      categoriaId: categoriaId ?? null,
+      criadoEm: now,
+      atualizadoEm: now,
+    });
+
+    await ref.update({ id: ref.id });
+
+    const doc = await ref.get();
+    return NextResponse.json({ id: ref.id, ...doc.data() }, { status: 201 });
+  } catch (e) {
+    console.error("POST /api/produtos error:", e);
+    return NextResponse.json({ error: "Erro ao criar produto" }, { status: 500 });
   }
-
-  const produto = await produtoRepository.create({
-    ...parsed.data, // já inclui categoriaId do body
-    criadoEm: new Date(),
-    atualizadoEm: new Date(),
-  });
-
-  return NextResponse.json(produto, { status: 201 });
 }
