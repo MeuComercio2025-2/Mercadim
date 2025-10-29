@@ -14,9 +14,13 @@ export default function PrivateLayout({
 }>) {
   return (
     <PrivateRoute>
-      <div className="flex">
+      {/* 1. Adicionado 'h-screen' para travar a altura total na tela */}
+      <div className="flex h-screen">
         <Sidebar />
-        <main className="flex-1 min-h-screen p-6">
+        {/* 2. Removido 'min-h-screen' e adicionado 'overflow-y-auto' 
+             Isso cria o scroll interno apenas para o conteúdo principal.
+        */}
+        <main className="flex-1 overflow-y-auto p-6">
             {children}
         </main>
       </div>
