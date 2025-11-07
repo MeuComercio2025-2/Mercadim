@@ -178,8 +178,8 @@ export default function Home() {
           </CardHeader>
           <CardContent className="space-y-4">
             {data.topProdutos.length > 0 ? (
-              data.topProdutos.map((prod) => (
-                <div key={prod.nome} className="flex items-center">
+              data.topProdutos.map((prod, index) => (
+                <div key={`${prod.nome ?? 'produto'}-${index}`} className="flex items-center">
                   <div className="ml-4 space-y-1">
                     <p className="text-sm font-medium leading-none">{prod.nome}</p>
                     <p className="text-sm text-muted-foreground">{prod.vendidas} unidades vendidas</p>
