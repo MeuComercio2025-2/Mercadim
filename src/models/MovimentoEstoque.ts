@@ -1,8 +1,8 @@
 import { Collection } from "fireorm";
-import { IsString, IsNumber, IsDate, IsIn } from "class-validator";
+import { IsString, IsIn, IsNumber, IsDate } from "class-validator";
 
 @Collection("movimentosEstoque")
-export class Estoque {
+export class MovimentoEstoque {
   id!: string;
 
   @IsString()
