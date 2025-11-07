@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
+import { createVenda, ServiceError } from "@/services/vendaService";
 import { vendaRepository } from "@/repository/VendaRepository";
-import { vendaSchema } from "@/lib/schemas/VendaSchema";
 
 export async function GET() {
   const vendas = await vendaRepository.find();
@@ -9,16 +9,18 @@ export async function GET() {
 
 export async function POST(req: Request) {
   const body = await req.json();
-  const parsed = vendaSchema.safeParse(body);
-
-  if (!parsed.success) {
-    return NextResponse.json({ errors: parsed.error.format() }, { status: 400 });
+  try {
+    const venda = await createVenda(body);
+    return NextResponse.json(venda, { status: 201 });
+  } catch (err: any) {
+    if (err instanceof ServiceError) {
+      // inclui payload se tiver erros de validacao
+      if (err.payload) {
+        return NextResponse.json({ errors: err.payload }, { status: err.status });
+      }
+      return NextResponse.json({ error: err.message }, { status: err.status });
+    }
+    console.error("Unexpected error creating venda:", err);
+    return NextResponse.json({ error: "Erro interno" }, { status: 500 });
   }
-
-  const venda = await vendaRepository.create({
-    ...parsed.data,
-    criadoEm: new Date(),
-  });
-
-  return NextResponse.json(venda, { status: 201 });
 }

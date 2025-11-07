@@ -8,6 +8,7 @@ export const itemVendaSchema = z.object({
 
 export const vendaSchema = z.object({
   usuarioId: z.string(),
+  formaPagamento: z.enum(["Dinheiro", "Cartão", "Pix"]).optional(), // pra guardar forma de pagamento
   itens: z.array(itemVendaSchema).min(1),
   valorTotal: z.number().positive(),
   criadoEm: z.date().default(() => new Date()).optional(),

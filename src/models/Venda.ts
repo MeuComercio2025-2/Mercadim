@@ -1,5 +1,5 @@
 import { Collection } from "fireorm";
-import { IsString, IsNumber, IsDate, IsArray } from "class-validator";
+import { IsString, IsNumber, IsDate, IsArray, IsOptional } from "class-validator";
 
 interface ItemVenda {
     produtoId: string;
@@ -13,6 +13,10 @@ export class Venda {
 
     @IsString()
     usuarioId!: string;
+
+    @IsOptional()
+    @IsString()
+    formaPagamento?: string;
 
     @IsArray()
     itens!: ItemVenda[];
