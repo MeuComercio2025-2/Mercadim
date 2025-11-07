@@ -5,7 +5,9 @@ import axios from "axios";
 import { useCart } from "./hooks/useCart";
 import { ProdutoValidated } from "@/lib/schemas/ProdutoSchema";
 import { FinalizarVendaModal } from "@/components/FinalizarVendaModal";
+import { useAuth } from "@/contexts/AuthContext";
 import { ShoppingCart, Package } from "lucide-react";
+import { toast } from "react-toastify";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,18 +15,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 
 export default function VendasPage() {
   const { cart, addToCart, removeFromCart, clearCart, total } = useCart();
+  const { user } = useAuth();
   const [produtos, setProdutos] = useState<ProdutoValidated[]>([]);
   const [openModal, setOpenModal] = useState(false);
 
+  const fetchProdutos = async () => {
+    try {
+      const response = await axios.get("/api/produtos");
+      setProdutos(response.data);
+    } catch (error) {
+      console.error("Erro ao buscar produtos:", error);
+    }
+  };
+
   useEffect(() => {
-    const fetchProdutos = async () => {
-      try {
-        const response = await axios.get("/api/produtos");
-        setProdutos(response.data);
-      } catch (error) {
-        console.error("Erro ao buscar produtos:", error);
-      }
-    };
     fetchProdutos();
   }, []);
 
@@ -40,18 +44,42 @@ export default function VendasPage() {
 
   const finalizarVenda = async (dadosVenda: any) => {
     try {
-      const response = await axios.post("/api/vendas", {
-        ...dadosVenda,
+      // tem certeza que temos um usuario logado para anexar o usuarioId
+      if (!user) {
+        alert("Você precisa estar logado para finalizar a venda.");
+        return;
+      }
+
+      const payload = {
+        usuarioId: user.uid,
+        formaPagamento: dadosVenda?.formaPagamento,
         itens: cart.map((item) => ({
-          produto: item,
+          produtoId: item.id,
           quantidade: item.quantidade,
-          subtotal: item.quantidade * item.preco,
+          precoUnitario: item.preco,
         })),
-        total,
+        valorTotal: total,
+      };
+
+      const response = await toast.promise(axios.post("/api/vendas", payload), {
+        pending: "Finalizando venda...",
+        success: "Venda realizada com sucesso!",
+        error: {
+          render({ data }) {
+            if (axios.isAxiosError(data) && data.response) {
+              // try to show API error
+              return data.response.data.error || "Erro ao salvar venda.";
+            }
+            return "Erro ao salvar venda.";
+          },
+        },
       });
+
       console.log("Venda salva:", response.data);
       clearCart();
       setOpenModal(false);
+      // Refresh produtos list so UI reflects updated estoque
+      await fetchProdutos();
     } catch (error) {
       console.error("Erro ao salvar venda:", error);
     }
