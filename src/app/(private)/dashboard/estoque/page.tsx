@@ -9,16 +9,33 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Package, Plus, Minus, History, RefreshCw } from "lucide-react";
 
+/** ADICIONADO: tipo para lidar com Timestamp do Firestore quando vier cru */
+type FirestoreTS = { seconds: number; nanoseconds: number };
+
 type Movimento = {
   id: string;
   produtoId: string;
   tipo: "entrada" | "saida";
   quantidade: number;
   descricao: string;
-  criadoEm: string | Date;
+  criadoEm: string | Date | FirestoreTS; // ADICIONADO: inclui FirestoreTS
 };
 
 const LIMIAR_BAIXO_ESTOQUE = 5;
+
+/** ADICIONADO: normalizador para transformar string/Date/Timestamp em Date */
+function toDateSafe(v: string | Date | FirestoreTS): Date {
+  if (v instanceof Date) return v;
+  if (typeof v === "string") {
+    const d = new Date(v);
+    return Number.isNaN(d.getTime()) ? new Date() : d;
+  }
+  // Firestore Timestamp
+  if (typeof v === "object" && v && "seconds" in v && "nanoseconds" in v) {
+    return new Date((v.seconds as number) * 1000 + Math.floor((v.nanoseconds as number) / 1e6));
+  }
+  return new Date();
+}
 
 export default function EstoquePage() {
   const [produtos, setProdutos] = useState<ProdutoValidated[]>([]);
@@ -26,9 +43,7 @@ export default function EstoquePage() {
   const [busca, setBusca] = useState("");
   const [selecionado, setSelecionado] = useState<ProdutoValidated | null>(null);
   const [movimentos, setMovimentos] = useState<Movimento[]>([]);
-  const [abrirModal, setAbrirModal] = useState<null | { tipo: "entrada" | "saida" }>(
-    null,
-  );
+  const [abrirModal, setAbrirModal] = useState<null | { tipo: "entrada" | "saida" }>(null);
   const [qtd, setQtd] = useState<number>(1);
   const [descricao, setDescricao] = useState("");
 
@@ -45,6 +60,8 @@ export default function EstoquePage() {
     try {
       const { data } = await axios.get<ProdutoValidated[]>("/api/produtos");
       setProdutos(data);
+      // ADICIONADO: se não houver selecionado, seleciona o primeiro para já mostrar histórico
+      if (!selecionado && data.length > 0) setSelecionado(data[0]);
     } catch (e) {
       console.error("Erro ao carregar produtos", e);
     } finally {
@@ -54,13 +71,20 @@ export default function EstoquePage() {
 
   const carregarMovimentos = async (produtoId: string): Promise<void> => {
     try {
-      const { data } = await axios.get<Movimento[]>(
-        `/api/estoque?produtoId=${produtoId}&limit=20`,
-      );
-      setMovimentos(data);
+      const { data } = await axios.get<Movimento[]>(`/api/estoque?produtoId=${produtoId}&limit=20`);
+      // ADICIONADO: normaliza o campo criadoEm para Date antes de salvar em estado
+      const norm = data.map((m) => ({ ...m, criadoEm: toDateSafe(m.criadoEm) }));
+      setMovimentos(norm);
     } catch (e: any) {
+      // ADICIONADO: trata cenário sem movimentos
       if (e?.response?.status === 404) {
         setMovimentos([]);
+        return;
+      }
+      // ADICIONADO: mensagem de índice composto ausente
+      if (e?.response?.data?.error && /índice/i.test(String(e.response.data.error))) {
+        console.warn(e.response.data.error);
+        alert("Crie o índice sugerido no console do Firebase (link aparece no terminal do servidor).");
         return;
       }
       console.error("Erro ao carregar movimentos", e);
@@ -69,24 +93,21 @@ export default function EstoquePage() {
 
   useEffect(() => {
     carregarProdutos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (selecionado?.id) carregarMovimentos(selecionado.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selecionado?.id]);
 
   const filtrados = useMemo(() => {
     const term = busca.trim().toLowerCase();
-    const base = term
-      ? produtos.filter((p) => p.nome.toLowerCase().includes(term))
-      : produtos;
+    const base = term ? produtos.filter((p) => p.nome.toLowerCase().includes(term)) : produtos;
     return base.toSorted((a, b) => a.nome.localeCompare(b.nome));
   }, [produtos, busca]);
 
-  const abrirMovimento = (
-    prod: ProdutoValidated,
-    tipo: "entrada" | "saida",
-  ): void => {
+  const abrirMovimento = (prod: ProdutoValidated, tipo: "entrada" | "saida"): void => {
     setSelecionado(prod);
     setQtd(1);
     setDescricao("");
@@ -106,19 +127,15 @@ export default function EstoquePage() {
         produtoId: selecionado.id,
         tipo: abrirModal.tipo,
         quantidade: qtd,
-        descricao:
-          descricao ||
-          (abrirModal.tipo === "entrada"
-            ? "Entrada manual"
-            : "Saída manual"),
+        descricao: descricao || (abrirModal.tipo === "entrada" ? "Entrada manual" : "Saída manual"),
       });
 
+      // ADICIONADO: recarrega produtos e movimentos (mantém histórico atualizado)
       await carregarProdutos();
       await carregarMovimentos(selecionado.id!);
       setAbrirModal(null);
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.error || e?.message || "Erro ao registrar movimento";
+      const msg = e?.response?.data?.error || e?.message || "Erro ao registrar movimento";
       alert(msg);
     }
   };
@@ -156,8 +173,7 @@ export default function EstoquePage() {
 
       await carregarProdutos();
     } catch (e: any) {
-      const msg =
-        e?.response?.data?.error || e?.message || "Erro ao criar produto";
+      const msg = e?.response?.data?.error || e?.message || "Erro ao criar produto";
       alert(msg);
     } finally {
       setSalvandoNovo(false);
@@ -183,9 +199,7 @@ export default function EstoquePage() {
           <CardHeader>
             <CardTitle>Total de Produtos</CardTitle>
           </CardHeader>
-          <CardContent className="text-2xl font-semibold">
-            {produtos.length}
-          </CardContent>
+          <CardContent className="text-2xl font-semibold">{produtos.length}</CardContent>
         </Card>
         <Card>
           <CardHeader>
@@ -214,15 +228,12 @@ export default function EstoquePage() {
         />
       </div>
 
-      {/* ATUALIZADO: Trocado 'bg-white' por 'bg-card text-card-foreground' */}
       <div className="bg-card text-card-foreground rounded-xl border">
         {loading ? (
-          // ATUALIZADO: Trocado 'text-gray-500' por 'text-muted-foreground'
           <div className="p-6 text-sm text-muted-foreground">Carregando...</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              {/* ATUALIZADO: Trocado 'bg-gray-50 text-gray-600' por 'bg-muted text-muted-foreground' */}
               <thead className="bg-muted text-muted-foreground uppercase text-xs">
                 <tr>
                   <th className="px-4 py-3 text-left">Produto</th>
@@ -235,30 +246,19 @@ export default function EstoquePage() {
                 {filtrados.map((p) => {
                   const baixo = p.estoque < LIMIAR_BAIXO_ESTOQUE;
                   return (
-                    // ATUALIZADO: Trocado 'hover:bg-gray-50' por 'hover:bg-muted/50'
                     <tr key={p.id} className="border-t hover:bg-muted/50">
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <span className="font-medium">{p.nome}</span>
-                          {baixo && (
-                            <Badge variant="destructive">baixo estoque</Badge>
-                          )}
-                          {/* ATUALIZADO: Adicionado 'variant="secondary"' para um visual mais neutro */}
-                          {p.estoque <= 0 && (
-                            <Badge variant="secondary">zerado</Badge>
-                          )}
+                          {baixo && <Badge variant="destructive">baixo estoque</Badge>}
+                          {p.estoque <= 0 && <Badge variant="secondary">zerado</Badge>}
                         </div>
                       </td>
                       <td className="px-4 py-3 text-center">{p.estoque}</td>
-                      <td className="px-4 py-3 text-right">
-                        R$ {p.preco.toFixed(2)}
-                      </td>
+                      <td className="px-4 py-3 text-right">R$ {p.preco.toFixed(2)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center justify-center gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => abrirMovimento(p, "entrada")}
-                          >
+                          <Button size="sm" onClick={() => abrirMovimento(p, "entrada")}>
                             <Plus className="h-4 w-4 mr-1" /> Entrada
                           </Button>
 
@@ -272,11 +272,7 @@ export default function EstoquePage() {
                             <Minus className="h-4 w-4 mr-1" /> Saída
                           </Button>
 
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setSelecionado(p)}
-                          >
+                          <Button size="sm" variant="ghost" onClick={() => setSelecionado(p)}>
                             <History className="h-4 w-4 mr-1" /> Histórico
                           </Button>
                         </div>
@@ -286,11 +282,7 @@ export default function EstoquePage() {
                 })}
                 {filtrados.length === 0 && (
                   <tr>
-                    {/* ATUALIZADO: Trocado 'text-gray-500' por 'text-muted-foreground' */}
-                    <td
-                      colSpan={4}
-                      className="px-4 py-6 text-center text-muted-foreground"
-                    >
+                    <td colSpan={4} className="px-4 py-6 text-center text-muted-foreground">
                       Nenhum produto encontrado
                     </td>
                   </tr>
@@ -308,14 +300,10 @@ export default function EstoquePage() {
           </CardHeader>
           <CardContent>
             {movimentos.length === 0 ? (
-              // ATUALIZADO: Trocado 'text-gray-500' por 'text-muted-foreground'
-              <div className="text-sm text-muted-foreground">
-                Sem movimentos para este produto.
-              </div>
+              <div className="text-sm text-muted-foreground">Sem movimentos para este produto.</div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  {/* ATUALIZADO: Trocado 'bg-gray-50 text-gray-600' por 'bg-muted text-muted-foreground' */}
                   <thead className="bg-muted text-muted-foreground uppercase text-xs">
                     <tr>
                       <th className="px-4 py-3 text-left">Tipo</th>
@@ -326,18 +314,11 @@ export default function EstoquePage() {
                   </thead>
                   <tbody>
                     {movimentos.map((m) => (
-                      // ATUALIZADO: Trocado 'hover:bg-gray-50' por 'hover:bg-muted/50'
                       <tr key={m.id} className="border-t hover:bg-muted/50">
-                        <td className="px-4 py-3">
-                          {m.tipo === "entrada" ? "Entrada" : "Saída"}
-                        </td>
+                        <td className="px-4 py-3">{m.tipo === "entrada" ? "Entrada" : "Saída"}</td>
                         <td className="px-4 py-3">{m.descricao}</td>
-                        <td className="px-4 py-3 text-center">
-                          {m.quantidade}
-                        </td>
-                        <td className="px-4 py-3">
-                          {new Date(m.criadoEm).toLocaleString("pt-BR")}
-                        </td>
+                        <td className="px-4 py-3 text-center">{m.quantidade}</td>
+                        <td className="px-4 py-3">{toDateSafe(m.criadoEm).toLocaleString("pt-BR")}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -349,15 +330,11 @@ export default function EstoquePage() {
       )}
 
       {abrirModal && selecionado && (
-        // ATUALIZADO: Trocado 'bg-black/30' por 'bg-background/80' (padrão do Dialog do Shadcn)
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          {/* ATUALIZADO: Trocado 'bg-white' por 'bg-card text-card-foreground' */}
           <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-semibold mb-4">
-              {abrirModal.tipo === "entrada"
-                ? "Registrar Entrada"
-                : "Registrar Saída"}{" "}
-              — {selecionado.nome}
+              {abrirModal.tipo === "entrada" ? "Registrar Entrada" : "Registrar Saída"} —{" "}
+              {selecionado.nome}
             </h3>
 
             <div className="space-y-3">
@@ -385,9 +362,7 @@ export default function EstoquePage() {
                 Cancelar
               </Button>
               <Button onClick={registrarMovimento}>
-                {abrirModal.tipo === "entrada"
-                  ? "Confirmar Entrada"
-                  : "Confirmar Saída"}
+                {abrirModal.tipo === "entrada" ? "Confirmar Entrada" : "Confirmar Saída"}
               </Button>
             </div>
           </div>
@@ -395,9 +370,7 @@ export default function EstoquePage() {
       )}
 
       {abrirNovo && (
-        // ATUALIZADO: Trocado 'bg-black/30' por 'bg-background/80'
         <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
-          {/* ATUALIZADO: Trocado 'bg-white' por 'bg-card text-card-foreground' */}
           <div className="bg-card text-card-foreground rounded-xl p-6 w-full max-w-md shadow-xl">
             <h3 className="text-lg font-semibold mb-4">Novo produto</h3>
 
@@ -420,9 +393,7 @@ export default function EstoquePage() {
                     min="0"
                     value={npPreco}
                     onChange={(e) =>
-                      setNpPreco(
-                        e.target.value === "" ? "" : Number(e.target.value),
-                      )
+                      setNpPreco(e.target.value === "" ? "" : Number(e.target.value))
                     }
                   />
                 </div>
@@ -434,9 +405,7 @@ export default function EstoquePage() {
                     min="0"
                     value={npEstoque}
                     onChange={(e) =>
-                      setNpEstoque(
-                        e.target.value === "" ? "" : Number(e.target.value),
-                      )
+                      setNpEstoque(e.target.value === "" ? "" : Number(e.target.value))
                     }
                   />
                 </div>
@@ -453,11 +422,7 @@ export default function EstoquePage() {
             </div>
 
             <div className="mt-6 flex justify-end gap-2">
-              <Button
-                variant="ghost"
-                onClick={() => setAbrirNovo(false)}
-                disabled={salvandoNovo}
-              >
+              <Button variant="ghost" onClick={() => setAbrirNovo(false)} disabled={salvandoNovo}>
                 Cancelar
               </Button>
               <Button onClick={salvarNovoProduto} disabled={salvandoNovo}>
