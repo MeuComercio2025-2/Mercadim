@@ -93,7 +93,243 @@ paths:
                   error:
                     type: string
                     example: Erro ao criar usuário no Firebase
+  /api/vendas/{id}:
+    get:
+      summary: Recupera uma venda pelo ID
+      tags:
+        - Vendas
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID da venda a ser consultada
+      responses:
+        '200':
+          description: Venda encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: v1
+                  usuarioId:
+                    type: string
+                    example: u1
+                  itens:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        produtoId:
+                          type: string
+                          example: p1
+                        quantidade:
+                          type: integer
+                          example: 2
+                        precoUnitario:
+                          type: number
+                          example: 15.5
+                  valorTotal:
+                    type: number
+                    example: 31
+                  criadoEm:
+                    type: string
+                    format: date-time
+                    example: '2025-11-12T10:00:00.000Z'
+        '404':
+          description: Venda não encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Venda não encontrada
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+    delete:
+      summary: Remove uma venda pelo ID
+      tags:
+        - Vendas
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID da venda a ser removida
+      responses:
+        '200':
+          description: Venda removida com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+  /api/vendas:
+    get:
+      summary: Lista todas as vendas
+      tags:
+        - Vendas
+      description: Recupera a lista de vendas registradas.
+      responses:
+        '200':
+          description: Lista de vendas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: v1
+                    usuarioId:
+                      type: string
+                      example: u1
+                    formaPagamento:
+                      type: string
+                      example: Dinheiro
+                    itens:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          produtoId:
+                            type: string
+                            example: p1
+                          quantidade:
+                            type: integer
+                            example: 2
+                          precoUnitario:
+                            type: number
+                            example: 15.5
+                    valorTotal:
+                      type: number
+                      example: 31
+                    criadoEm:
+                      type: string
+                      format: date-time
+                      example: '2025-11-12T10:00:00.000Z'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+    post:
+      summary: Cria uma nova venda
+      tags:
+        - Vendas
+      description: Salva uma venda com itens e registra movimentos de estoque.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usuarioId
+                - itens
+                - valorTotal
+              properties:
+                usuarioId:
+                  type: string
+                  example: u1
+                formaPagamento:
+                  type: string
+                  enum:
+                    - Dinheiro
+                    - Cartão
+                    - Pix
+                  example: Pix
+                itens:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      produtoId:
+                        type: string
+                        example: p1
+                      quantidade:
+                        type: integer
+                        example: 2
+                      precoUnitario:
+                        type: number
+                        example: 15.5
+                valorTotal:
+                  type: number
+                  example: 31
+      responses:
+        '201':
+          description: Venda criada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: v1
+                  usuarioId:
+                    type: string
+                    example: u1
+                  message:
+                    type: string
+                    example: Venda criada
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
 components: {}
 tags:
   - name: Admin
     description: Gerenciamento do usuário administrador
+  - name: Vendas
+    description: Operações relacionadas a vendas

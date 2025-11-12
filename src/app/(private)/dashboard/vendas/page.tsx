@@ -67,7 +67,7 @@ export default function VendasPage() {
         error: {
           render({ data }) {
             if (axios.isAxiosError(data) && data.response) {
-              // try to show API error
+              // tenta mostrar erro da API
               return data.response.data.error || "Erro ao salvar venda.";
             }
             return "Erro ao salvar venda.";
@@ -78,7 +78,7 @@ export default function VendasPage() {
       console.log("Venda salva:", response.data);
       clearCart();
       setOpenModal(false);
-      // Refresh produtos list so UI reflects updated estoque
+      // refresca lista de produtos
       await fetchProdutos();
     } catch (error) {
       console.error("Erro ao salvar venda:", error);
