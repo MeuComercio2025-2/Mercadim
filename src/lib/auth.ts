@@ -12,7 +12,7 @@ import {
   verifyBeforeUpdateEmail,
   EmailAuthProvider,
   reauthenticateWithCredential,
-} from "@firebase/auth";
+} from "firebase/auth";
 // 🚀 Remova o import do 'toast'. Ele agora vive apenas no AuthContext.
 
 export interface UserData {
