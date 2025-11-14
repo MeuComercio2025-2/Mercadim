@@ -40,15 +40,19 @@ export async function createVenda(body: unknown) {
 
   // criar movimentos de estoque e atualizar produtos
   for (const item of parsed.data.itens) {
+    // busca produto para compor uma descrição mais completa do movimento
+    const produto = await produtoRepository.findById(item.produtoId);
+    const produtoNome = produto?.nome ?? "Produto desconhecido";
+    const descricao = `Venda bem sucedida - Produto: ${produtoNome} (ID: ${item.produtoId}) - Venda ID: ${venda.id}`;
+
     await estoqueRepository.create({
       produtoId: item.produtoId,
       tipo: "saida",
       quantidade: item.quantidade,
-      descricao: `venda:${venda.id}`,
+      descricao,
       criadoEm: new Date(),
     });
 
-    const produto = await produtoRepository.findById(item.produtoId);
     if (produto) {
       const novoEstoque = (produto.estoque ?? 0) - item.quantidade;
       await produtoRepository.update({
