@@ -131,10 +131,10 @@ paths:
               properties:
                 displayName:
                   type: string
-                  example: "Pedro Souza"
+                  example: 'Pedro Souza'
                 photoURL:
                   type: string
-                  example: "https://exemplo.com/foto.png"
+                  example: 'https://exemplo.com/foto.png'
       responses:
         '200':
           description: Perfil atualizado com sucesso
@@ -169,10 +169,10 @@ paths:
               properties:
                 currentPassword:
                   type: string
-                  example: "SenhaAtual123"
+                  example: 'SenhaAtual123'
                 newEmail:
                   type: string
-                  example: "novo@email.com"
+                  example: 'novo@email.com'
       responses:
         '200':
           description: Solicitação enviada (verifique o novo e-mail)
@@ -207,10 +207,10 @@ paths:
               properties:
                 currentPassword:
                   type: string
-                  example: "SenhaAtual123"
+                  example: 'SenhaAtual123'
                 newPassword:
                   type: string
-                  example: "NovaSenha123"
+                  example: 'NovaSenha123'
       responses:
         '200':
           description: Senha atualizada (usuário deslogado)
@@ -262,6 +262,7 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: Dados inválidos
         '500':
           description: Erro interno do servidor
           content:
@@ -271,6 +272,396 @@ paths:
                 properties:
                   error:
                     type: string
+                    example: Erro interno
+
+  /api/vendas/{id}:
+    get:
+      summary: Recupera uma venda pelo ID
+      tags:
+        - Vendas
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID da venda a ser consultada
+      responses:
+        '200':
+          description: Venda encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: v1
+                  usuarioId:
+                    type: string
+                    example: u1
+                  itens:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        produtoId:
+                          type: string
+                          example: p1
+                        quantidade:
+                          type: integer
+                          example: 2
+                        precoUnitario:
+                          type: number
+                          example: 15.5
+                  valorTotal:
+                    type: number
+                    example: 31
+                  criadoEm:
+                    type: string
+                    format: date-time
+                    example: '2025-11-12T10:00:00.000Z'
+        '404':
+          description: Venda não encontrada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Venda não encontrada
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+    delete:
+      summary: Remove uma venda pelo ID
+      tags:
+        - Vendas
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: ID da venda a ser removida
+      responses:
+        '200':
+          description: Venda removida com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+
+  /api/vendas:
+    get:
+      summary: Lista todas as vendas
+      tags:
+        - Vendas
+      description: Recupera a lista de vendas registradas.
+      responses:
+        '200':
+          description: Lista de vendas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: v1
+                    usuarioId:
+                      type: string
+                      example: u1
+                    formaPagamento:
+                      type: string
+                      example: Dinheiro
+                    itens:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          produtoId:
+                            type: string
+                            example: p1
+                          quantidade:
+                            type: integer
+                            example: 2
+                          precoUnitario:
+                            type: number
+                            example: 15.5
+                    valorTotal:
+                      type: number
+                      example: 31
+                    criadoEm:
+                      type: string
+                      format: date-time
+                      example: '2025-11-12T10:00:00.000Z'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+    post:
+      summary: Cria uma nova venda
+      tags:
+        - Vendas
+      description: Salva uma venda com itens e registra movimentos de estoque.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - usuarioId
+                - itens
+                - valorTotal
+              properties:
+                usuarioId:
+                  type: string
+                  example: u1
+                formaPagamento:
+                  type: string
+                  enum:
+                    - Dinheiro
+                    - Cartão
+                    - Pix
+                  example: Pix
+                itens:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      produtoId:
+                        type: string
+                        example: p1
+                      quantidade:
+                        type: integer
+                        example: 2
+                      precoUnitario:
+                        type: number
+                        example: 15.5
+                valorTotal:
+                  type: number
+                  example: 31
+      responses:
+        '201':
+          description: Venda criada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: v1
+                  usuarioId:
+                    type: string
+                    example: u1
+                  message:
+                    type: string
+                    example: Venda criada
+        '400':
+          description: Erro de validação
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  errors:
+                    type: object
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+
+  # ============================
+  #   ESTOQUE / MOVIMENTOS
+  # ============================
+  /api/estoque:
+    get:
+      summary: Lista movimentos de estoque
+      tags:
+        - Estoque
+      description: >
+        Retorna os movimentos de estoque (entradas e saídas).  
+        É possível filtrar por produto e limitar a quantidade retornada.
+      parameters:
+        - in: query
+          name: produtoId
+          required: false
+          schema:
+            type: string
+          description: ID do produto para filtrar os movimentos.
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+          description: Quantidade máxima de movimentos retornados (padrão 20).
+      responses:
+        '200':
+          description: Lista de movimentos de estoque
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: m1
+                    produtoId:
+                      type: string
+                      example: p1
+                    tipo:
+                      type: string
+                      enum:
+                        - entrada
+                        - saida
+                      example: entrada
+                    quantidade:
+                      type: integer
+                      example: 5
+                    descricao:
+                      type: string
+                      example: Entrada manual
+                    criadoEm:
+                      type: string
+                      format: date-time
+                      example: '2025-11-12T10:05:00.000Z'
+        '500':
+          description: Erro interno ao listar movimentos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno ao listar movimentos
+    post:
+      summary: Registra um movimento de estoque
+      tags:
+        - Estoque
+      description: >
+        Registra uma **entrada** ou **saída** de estoque para um produto  
+        e atualiza o campo `estoque` na coleção de produtos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - produtoId
+                - tipo
+                - quantidade
+              properties:
+                produtoId:
+                  type: string
+                  example: p1
+                tipo:
+                  type: string
+                  enum:
+                    - entrada
+                    - saida
+                  example: entrada
+                quantidade:
+                  type: integer
+                  example: 3
+                descricao:
+                  type: string
+                  example: Ajuste manual de estoque
+      responses:
+        '201':
+          description: Movimento registrado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  movimentoId:
+                    type: string
+                    example: m1
+                  novoEstoque:
+                    type: integer
+                    example: 42
+                  criadoEm:
+                    type: string
+                    format: date-time
+                    example: '2025-11-12T10:05:00.000Z'
+        '400':
+          description: Erro de validação ou regra de negócio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Saída excede o estoque atual
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Produto não encontrado
+        '500':
+          description: Erro interno ao registrar movimento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno ao registrar movimento
 
 components:
   schemas:
@@ -279,16 +670,16 @@ components:
       properties:
         uid:
           type: string
-          example: "abc123uid"
+          example: 'abc123uid'
         displayName:
           type: string
-          example: "Pedro Souza"
+          example: 'Pedro Souza'
         email:
           type: string
-          example: "usuario@exemplo.com"
+          example: 'usuario@exemplo.com'
         photoURL:
           type: string
-          example: "https://exemplo.com/foto.png"
+          example: 'https://exemplo.com/foto.png'
 
     FeedbackInput:
       type: object
@@ -302,10 +693,10 @@ components:
           example: usuario@exemplo.com
         assunto:
           type: string
-          example: "Problema no checkout"
+          example: 'Problema no checkout'
         descricao:
           type: string
-          example: "Ao finalizar a venda o sistema retorna erro 500..."
+          example: 'Ao finalizar a venda o sistema retorna erro 500...'
 
 tags:
   - name: Admin
@@ -314,3 +705,7 @@ tags:
     description: Operações relacionadas ao perfil do usuário (visualizar/atualizar nome, foto, e-mail e senha)
   - name: Suporte
     description: Envio de feedbacks e solicitações de suporte
+  - name: Vendas
+    description: Operações relacionadas a vendas
+  - name: Estoque
+    description: Entradas, saídas e histórico de movimentos de estoque
