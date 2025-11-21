@@ -4,11 +4,11 @@ import { produtoSchema } from "@/lib/schemas/ProdutoSchema";
 import { estoqueRepository } from "@/repository/EstoqueRepository";
 
 interface Params {
-  params: { id: string };
+  params: Promise<{ id: string }>;
 }
 
 export async function GET(req: Request, { params }: Params) {
-  const { id } = params;
+  const { id } = await params;
 
   const produto = await produtoRepository.findById(id);
   if (!produto) {
@@ -22,7 +22,7 @@ export async function GET(req: Request, { params }: Params) {
 }
 
 export async function PUT(req: Request, { params }: Params) {
-  const { id } = params;
+  const { id } = await params;
   const body = await req.json();
   const parsed = produtoSchema.safeParse(body);
 
@@ -71,6 +71,7 @@ export async function PUT(req: Request, { params }: Params) {
 }
 
 export async function DELETE(req: Request, { params }: Params) {
-  const { id } = params;
+  const { id } = await params;
+  produtoRepository.delete(id);
   return NextResponse.json({ message: "Produto deletado com sucesso" });
 }
