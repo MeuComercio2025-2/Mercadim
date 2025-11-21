@@ -71,10 +71,11 @@ import { vendaRepository } from "@/repository/VendaRepository";
  *                   example: "Erro interno"
  */
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
 export async function GET(_: Request, { params }: Params) {
-  const venda = await vendaRepository.findById(params.id);
+  const { id } = await params;
+  const venda = await vendaRepository.findById(id);
   if (!venda)
     return NextResponse.json(
       { error: "Venda não encontrada" },
@@ -119,6 +120,7 @@ export async function GET(_: Request, { params }: Params) {
  *                   example: "Erro interno"
  */
 export async function DELETE(_: Request, { params }: Params) {
-  await vendaRepository.delete(params.id);
+  const { id } = await params;
+  await vendaRepository.delete(id);
   return NextResponse.json({ success: true });
 }
