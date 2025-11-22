@@ -12,7 +12,7 @@ import {
   updateUserPassword,
   UserData,
 } from "@/lib/auth"; // Importando do seu lib/auth.ts refatorado
-import { User } from "@firebase/auth"; // Importe FirebaseError
+import { User } from "firebase/auth"; // Importe FirebaseError
 import { toast } from "react-toastify";
 import { useRouter } from "next/navigation";
 import { FirebaseError } from "firebase/app";
