@@ -93,6 +93,187 @@ paths:
                   error:
                     type: string
                     example: Erro ao criar usuário no Firebase
+
+  /api/profile:
+    get:
+      summary: Retorna dados do usuário autenticado
+      tags:
+        - Perfil
+      description: Retorna as informações básicas do usuário logado (uid, displayName, email, photoURL).
+      responses:
+        '200':
+          description: Dados do usuário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Profile'
+        '401':
+          description: Não autenticado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Não autenticado
+    put:
+      summary: Atualiza nome e foto do perfil
+      tags:
+        - Perfil
+      description: Atualiza o displayName e/ou photoURL do usuário autenticado.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                displayName:
+                  type: string
+                  example: 'Pedro Souza'
+                photoURL:
+                  type: string
+                  example: 'https://exemplo.com/foto.png'
+      responses:
+        '200':
+          description: Perfil atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Perfil atualizado
+        '400':
+          description: Requisição inválida
+        '401':
+          description: Não autenticado
+
+  /api/profile/email:
+    post:
+      summary: Solicitar troca de e-mail (envia verificação)
+      tags:
+        - Perfil
+      description: Reautentica com a senha atual e envia o e-mail de verificação para alteração do e-mail.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newEmail
+              properties:
+                currentPassword:
+                  type: string
+                  example: 'SenhaAtual123'
+                newEmail:
+                  type: string
+                  example: 'novo@email.com'
+      responses:
+        '200':
+          description: Solicitação enviada (verifique o novo e-mail)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Verifique seu novo e-mail para confirmação
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Reautenticação falhou
+
+  /api/profile/password:
+    post:
+      summary: Trocar senha do usuário
+      tags:
+        - Perfil
+      description: Reautentica com a senha atual e atualiza a senha do usuário. (Após sucesso, faz logout)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - currentPassword
+                - newPassword
+              properties:
+                currentPassword:
+                  type: string
+                  example: 'SenhaAtual123'
+                newPassword:
+                  type: string
+                  example: 'NovaSenha123'
+      responses:
+        '200':
+          description: Senha atualizada (usuário deslogado)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Senha atualizada, faça login novamente
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Reautenticação falhou
+
+  /api/feedback:
+    post:
+      summary: Enviar feedback / report de suporte
+      tags:
+        - Suporte
+      description: Recebe email, assunto (opcional) e descrição do feedback e salva no Firestore.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackInput'
+      responses:
+        '201':
+          description: Feedback criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  descricao:
+                    type: string
+        '400':
+          description: Campos obrigatórios ausentes ou inválidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Dados inválidos
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno
+
   /api/vendas/{id}:
     get:
       summary: Recupera uma venda pelo ID
@@ -192,6 +373,7 @@ paths:
                   error:
                     type: string
                     example: Erro interno
+
   /api/vendas:
     get:
       summary: Lista todas as vendas
@@ -327,9 +509,203 @@ paths:
                   error:
                     type: string
                     example: Erro interno
-components: {}
+
+  # ============================
+  #   ESTOQUE / MOVIMENTOS
+  # ============================
+  /api/estoque:
+    get:
+      summary: Lista movimentos de estoque
+      tags:
+        - Estoque
+      description: >
+        Retorna os movimentos de estoque (entradas e saídas).  
+        É possível filtrar por produto e limitar a quantidade retornada.
+      parameters:
+        - in: query
+          name: produtoId
+          required: false
+          schema:
+            type: string
+          description: ID do produto para filtrar os movimentos.
+        - in: query
+          name: limit
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 20
+          description: Quantidade máxima de movimentos retornados (padrão 20).
+      responses:
+        '200':
+          description: Lista de movimentos de estoque
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: m1
+                    produtoId:
+                      type: string
+                      example: p1
+                    tipo:
+                      type: string
+                      enum:
+                        - entrada
+                        - saida
+                      example: entrada
+                    quantidade:
+                      type: integer
+                      example: 5
+                    descricao:
+                      type: string
+                      example: Entrada manual
+                    criadoEm:
+                      type: string
+                      format: date-time
+                      example: '2025-11-12T10:05:00.000Z'
+        '500':
+          description: Erro interno ao listar movimentos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno ao listar movimentos
+    post:
+      summary: Registra um movimento de estoque
+      tags:
+        - Estoque
+      description: >
+        Registra uma **entrada** ou **saída** de estoque para um produto  
+        e atualiza o campo `estoque` na coleção de produtos.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - produtoId
+                - tipo
+                - quantidade
+              properties:
+                produtoId:
+                  type: string
+                  example: p1
+                tipo:
+                  type: string
+                  enum:
+                    - entrada
+                    - saida
+                  example: entrada
+                quantidade:
+                  type: integer
+                  example: 3
+                descricao:
+                  type: string
+                  example: Ajuste manual de estoque
+      responses:
+        '201':
+          description: Movimento registrado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+                    example: true
+                  movimentoId:
+                    type: string
+                    example: m1
+                  novoEstoque:
+                    type: integer
+                    example: 42
+                  criadoEm:
+                    type: string
+                    format: date-time
+                    example: '2025-11-12T10:05:00.000Z'
+        '400':
+          description: Erro de validação ou regra de negócio
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Saída excede o estoque atual
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Produto não encontrado
+        '500':
+          description: Erro interno ao registrar movimento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: Erro interno ao registrar movimento
+
+components:
+  schemas:
+    Profile:
+      type: object
+      properties:
+        uid:
+          type: string
+          example: 'abc123uid'
+        displayName:
+          type: string
+          example: 'Pedro Souza'
+        email:
+          type: string
+          example: 'usuario@exemplo.com'
+        photoURL:
+          type: string
+          example: 'https://exemplo.com/foto.png'
+
+    FeedbackInput:
+      type: object
+      required:
+        - email
+        - descricao
+      properties:
+        email:
+          type: string
+          format: email
+          example: usuario@exemplo.com
+        assunto:
+          type: string
+          example: 'Problema no checkout'
+        descricao:
+          type: string
+          example: 'Ao finalizar a venda o sistema retorna erro 500...'
+
 tags:
   - name: Admin
     description: Gerenciamento do usuário administrador
+  - name: Perfil
+    description: Operações relacionadas ao perfil do usuário (visualizar/atualizar nome, foto, e-mail e senha)
+  - name: Suporte
+    description: Envio de feedbacks e solicitações de suporte
   - name: Vendas
     description: Operações relacionadas a vendas
+  - name: Estoque
+    description: Entradas, saídas e histórico de movimentos de estoque
