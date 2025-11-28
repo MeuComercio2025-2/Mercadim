@@ -8,7 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 
 
 export const metadata: Metadata = {
-  title: "Meu Comercio",
+  title: "Mercadim - Sistema de Gestão de Comércio",
   description: "Criado Para A Cadeira de Desenvolvimento Web",
 };
 
