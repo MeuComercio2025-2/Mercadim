@@ -25,7 +25,7 @@ export default function LoginPage() {
         <CardHeader>
           <div className="flex flex-col items-center gap-2">
             <div className="text-4xl"><ShoppingCart /></div>
-            <CardTitle className="text-center">Meu Mercado</CardTitle>
+            <CardTitle className="text-center">Mercadim</CardTitle>
             <p className="text-gray-500 text-sm">
               Entre para acessar o sistema
             </p>
@@ -34,7 +34,7 @@ export default function LoginPage() {
 
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="email">E-mail</Label>
               <Input
                 id="email"
@@ -45,7 +45,7 @@ export default function LoginPage() {
               />
             </div>
 
-            <div>
+            <div className="space-y-1">
               <Label htmlFor="password">Senha</Label>
               <Input
                 id="password"

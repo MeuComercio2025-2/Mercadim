@@ -77,7 +77,7 @@ export default function Register() {
             {/* Etapa 1 */}
             {step === 1 && (
               <>
-                <div>
+                <div className="space-y-1">
                   <Label htmlFor="name">Nome</Label>
                   <Input
                     id="name"
@@ -92,7 +92,7 @@ export default function Register() {
                   )}
                 </div>
 
-                <div>
+                <div className="space-y-1">
                   <Label htmlFor="email">E-mail</Label>
                   <Input
                     id="email"
@@ -112,7 +112,7 @@ export default function Register() {
             {/* Etapa 2 */}
             {step === 2 && (
               <>
-                <div>
+                <div className="space-y-1">
                   <Label htmlFor="password">Senha</Label>
                   <Input
                     id="password"
@@ -127,7 +127,7 @@ export default function Register() {
                   )}
                 </div>
 
-                <div>
+                <div className="space-y-1">
                   <Label htmlFor="confirmPassword">Confirmar Senha</Label>
                   <Input
                     id="confirmPassword"
@@ -147,8 +147,8 @@ export default function Register() {
             {/* Etapa 3 */}
             {step === 3 && (
               <div className="space-y-2">
-                <p className="text-gray-700 text-sm">Revise seus dados:</p>
-                <div className="bg-gray-50 p-3 rounded-md">
+                <p className="text-sm">Revise seus dados:</p>
+                <div className="p-3 rounded-md">
                   <p>
                     <strong>Nome:</strong> {watchedData.name}
                   </p>
