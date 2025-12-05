@@ -44,6 +44,9 @@ export interface ProdutoInfo {
   estoque: number;
   criadoEm: string;
   atualizadoEm: string;
+
+  // ✅ ADICIONADO
+  ativo: boolean;
 }
 
 // --- Tipagem dos dados do gráfico ---
@@ -102,9 +105,7 @@ const processDashboardData = (
   const inicioSemanaPassada = subDays(inicioSemana, 7);
   const fimSemanaPassada = subDays(fimSemana, 7);
 
-  // --------------------------------------------------------
-  // --- DADOS DE VENDAS ---
-  // --------------------------------------------------------
+  // --- DADOS VENDAS ---
   let vendasTotais = 0;
   let itensVendidos = 0;
   let vendasSemanaPassada = 0;
@@ -174,9 +175,7 @@ const processDashboardData = (
 
   const ticketMedio = numVendasSemana > 0 ? vendasTotais / numVendasSemana : 0;
 
-  // --------------------------------------------------------
-  // --- DADOS DE ESTOQUE ---
-  // --------------------------------------------------------
+  // --- ESTOQUE ---
   let entradasTotais = 0;
   let saidasTotais = 0;
 
@@ -221,7 +220,6 @@ const processDashboardData = (
 
   const saldoEstoqueSemanal = entradasTotais - saidasTotais;
 
-  // --- retorno parcial, enriquecido depois ---
   return {
     vendasTotais,
     percentualVendas,
@@ -266,7 +264,7 @@ export function useDashboardData() {
         const base = processDashboardData(vendas, estoque);
 
         // ------------------------------------------------------
-        // ENRIQUECER TOP PRODUTOS com /api/produtos/[id]
+        // ENRIQUECER TOP PRODUTOS
         // ------------------------------------------------------
         const topDetalhado = await Promise.all(
           base.topProdutos.map(async (item) => {
@@ -282,9 +280,12 @@ export function useDashboardData() {
           })
         );
 
+        // 🔥 FILTRAR PRODUTOS NÃO ATIVOS
+        const topAtivos = topDetalhado.filter((p) => p.detalhes?.ativo);
+
         setData({
           ...base,
-          topProdutos: topDetalhado,
+          topProdutos: topAtivos,
         });
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro desconhecido");

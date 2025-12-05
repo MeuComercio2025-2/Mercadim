@@ -60,6 +60,7 @@ export default function VendasPage() {
           precoUnitario: item.preco,
         })),
         valorTotal: total,
+    
       };
 
       const response = await toast.promise(axios.post("/api/vendas", payload), {
