@@ -9,6 +9,7 @@ export const produtoSchema = z.object({
   categoriaId: z.string().optional(), 
   criadoEm: z.date().optional(), // será gerado automaticamente se não enviado
   atualizadoEm: z.date().optional(),
+  ativo: z.boolean().optional().default(true),
 });
 
 // Tipo TypeScript a partir do schema

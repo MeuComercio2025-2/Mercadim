@@ -72,6 +72,7 @@ export async function PUT(req: Request, { params }: Params) {
 
 export async function DELETE(req: Request, { params }: Params) {
   const { id } = await params;
-  produtoRepository.delete(id);
+  const produto = await produtoRepository.findById(id);
+  await produtoRepository.update({...produto, ativo: false})
   return NextResponse.json({ message: "Produto deletado com sucesso" });
 }

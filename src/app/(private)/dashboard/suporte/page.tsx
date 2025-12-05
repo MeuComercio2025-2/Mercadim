@@ -63,7 +63,7 @@ export default function SuportePage() {
     <div className="p-6 md:p-12 max-w-4xl mx-auto">
       {/* Cabeçalho */}
       <header className="mb-8">
-        <h1 className="text-3xl font-bold text-foreground flex items-center gap-3">
+        <h1 className="text-3xl font-bold flex items-center gap-3">
           <LifeBuoy className="w-8 h-8" />
           Suporte e Contato
         </h1>
@@ -90,7 +90,7 @@ export default function SuportePage() {
             <Button
               asChild
               variant="outline"
-              className="w-full md:w-auto bg-transparent border border-gray-500 text-gray-100 hover:bg-gray-800 hover:text-white transition"
+              className="w-full md:w-auto border transition"
             >
               <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
                 Chamar no WhatsApp
@@ -111,13 +111,13 @@ export default function SuportePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <p className="font-medium text-foreground break-all">
+            <p className="font-medium break-all">
               {EMAIL_ADDRESS}
             </p>
             <Button
               asChild
               variant="outline"
-              className="w-full md:w-auto bg-transparent border border-gray-500 text-gray-100 hover:bg-gray-800 hover:text-white transition"
+              className="w-full md:w-auto border transition"
             >
               <a href={`mailto:${EMAIL_ADDRESS}`}>Enviar E-mail</a>
             </Button>
@@ -150,18 +150,18 @@ export default function SuportePage() {
               placeholder="Descrição do feedback"
               value={descricao}
               onChange={(e) => setDescricao(e.target.value)}
-              className="border rounded-md px-3 py-2 w-full min-h-[6rem] text-sm bg-transparent text-foreground placeholder:text-muted-foreground"
+              className="border rounded-md px-3 py-2 w-full min-h-[6rem] text-sm  placeholder:text-muted-foreground"
             />
             <Button
               onClick={sendFeedback}
               disabled={loading}
               variant="outline"
-              className="w-full bg-transparent border border-gray-500 text-gray-100 hover:bg-gray-800 hover:text-white transition"
+              className="w-full border transition"
             >
               {loading ? "Enviando..." : "Enviar Feedback"}
             </Button>
             {message && (
-              <p className="text-sm text-muted-foreground text-center">{message}</p>
+              <p className="text-sm text-center">{message}</p>
             )}
           </CardContent>
         </Card>
@@ -178,11 +178,11 @@ export default function SuportePage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-lg font-medium text-foreground">{COMPANY_ADDRESS}</p>
+            <p className="text-lg font-medium">{COMPANY_ADDRESS}</p>
             <Button
               asChild
               variant="outline"
-              className="w-full md:w-auto bg-transparent border border-gray-500 text-gray-100 hover:bg-gray-800 hover:text-white transition"
+              className="w-full"
             >
               <a href={GOOGLE_MAPS_LINK} target="_blank" rel="noopener noreferrer">
                 Ver no Google Maps
@@ -222,7 +222,7 @@ export default function SuportePage() {
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="termos" className="space-y-4 text-sm leading-relaxed text-foreground">
+                <TabsContent value="termos" className="space-y-4 text-sm leading-relaxed">
                   <p>
                     Ao utilizar o sistema <strong>Meu Comércio</strong>, você concorda com os termos descritos a seguir.
                   </p>
@@ -246,7 +246,7 @@ export default function SuportePage() {
                   </p>
                 </TabsContent>
 
-                <TabsContent value="licencas" className="space-y-3 text-sm leading-relaxed text-foreground">
+                <TabsContent value="licencas" className="space-y-3 text-sm leading-relaxed">
                   <p className="font-semibold">Licenças de Terceiros</p>
                   <p>Este produto contém software sob licenças Apache, MIT e outras licenças abertas.</p>
                   <hr className="border-muted" />

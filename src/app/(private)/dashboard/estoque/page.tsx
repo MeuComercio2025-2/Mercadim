@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Package, Plus, Minus, History, RefreshCw } from "lucide-react";
+import { Package, Plus, Minus, History, RefreshCw, Trash } from "lucide-react";
 
 type FirestoreTS = { seconds: number; nanoseconds: number };
 
@@ -31,7 +31,7 @@ function toDateSafe(v: string | Date | FirestoreTS): Date {
   if (typeof v === "object" && v && "seconds" in v && "nanoseconds" in v) {
     return new Date(
       (v.seconds as number) * 1000 +
-        Math.floor((v.nanoseconds as number) / 1e6),
+      Math.floor((v.nanoseconds as number) / 1e6),
     );
   }
   return new Date();
@@ -59,7 +59,7 @@ export default function EstoquePage() {
     setLoading(true);
     try {
       const { data } = await axios.get<ProdutoValidated[]>("/api/produtos");
-      setProdutos(data);
+      setProdutos(data.filter((p) => p.ativo !== false));
       if (!selecionado && data.length > 0) setSelecionado(data[0]);
     } catch (e) {
       console.error("Erro ao carregar produtos", e);
@@ -115,6 +115,20 @@ export default function EstoquePage() {
     setDescricao("");
     setAbrirModal({ tipo });
   };
+
+  const deletarProduto = async (prod: ProdutoValidated): Promise<void> => {
+    if (!confirm(`Confirma a exclusão do produto "${prod.nome}"?`)) return;
+
+    try {
+      await axios.delete(`/api/produtos/${prod.id}`);
+      if (selecionado?.id === prod.id) setSelecionado(null);
+      await carregarProdutos();
+    } catch (e: any) {
+      const msg =
+        e?.response?.data?.error || e?.message || "Erro ao excluir produto";
+      alert(msg);
+    }
+  }
 
   const registrarMovimento = async (): Promise<void> => {
     if (!selecionado || !abrirModal) return;
@@ -295,12 +309,21 @@ export default function EstoquePage() {
                             <Minus className="h-4 w-4 mr-1" /> Saída
                           </Button>
 
+
+
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => setSelecionado(p)}
                           >
                             <History className="h-4 w-4 mr-1" /> Histórico
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => deletarProduto(p)}
+                          >
+                            <Trash className="h-4 w-4 m-auto" />
                           </Button>
                         </div>
                       </td>

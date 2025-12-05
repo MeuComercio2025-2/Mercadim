@@ -39,6 +39,7 @@ export async function POST(req: Request) {
       categoriaId: categoriaId ?? null,
       criadoEm: now,
       atualizadoEm: now,
+      ativo: true
     });
 
     await ref.update({ id: ref.id });

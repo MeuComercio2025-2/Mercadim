@@ -22,7 +22,8 @@ export default function VendasPage() {
   const fetchProdutos = async () => {
     try {
       const response = await axios.get("/api/produtos");
-      setProdutos(response.data);
+      const produtos = response.data as ProdutoValidated[];
+      setProdutos(produtos.filter(p => p.ativo));
     } catch (error) {
       console.error("Erro ao buscar produtos:", error);
     }
